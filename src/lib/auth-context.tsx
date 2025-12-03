@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(newToken);
             setUser(newUser);
         } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Login failed');
+            throw new Error(error.response?.data?.message || 'Đăng nhập thất bại');
         }
     };
 
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(newToken);
             setUser(newUser);
         } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Registration failed');
+            throw new Error(error.response?.data?.message || 'Đăng ký thất bại');
         }
     };
 
@@ -79,6 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('token');
         setToken(null);
         setUser(null);
+        // Redirect to login page
+        if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+        }
     };
 
     return (

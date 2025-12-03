@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import { Toaster } from "react-hot-toast";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./globals.css";
 
+const inter = Inter({ subsets: ["latin"] });
+
 export const metadata: Metadata = {
-    title: "Personalized Bot - AI Assistant with Your Persona",
-    description: "Personalized AI assistant with user-specific personas, article summarization, and modular tool generation",
+    title: "n8n Market | Buy & Sell n8n Workflows",
+    description: "The largest marketplace for n8n templates. Discover, buy, and sell high-quality workflows to save time and scale your operations.",
 };
 
 export default function RootLayout({
@@ -14,10 +19,36 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body>
-                <AuthProvider>
-                    {children}
-                </AuthProvider>
+            <body className={inter.className}>
+                <ErrorBoundary>
+                    <AuthProvider>
+                        {children}
+                        <Toaster
+                            position="top-right"
+                            toastOptions={{
+                                duration: 4000,
+                                style: {
+                                    background: '#363636',
+                                    color: '#fff',
+                                },
+                                success: {
+                                    duration: 3000,
+                                    iconTheme: {
+                                        primary: '#10b981',
+                                        secondary: '#fff',
+                                    },
+                                },
+                                error: {
+                                    duration: 4000,
+                                    iconTheme: {
+                                        primary: '#ef4444',
+                                        secondary: '#fff',
+                                    },
+                                },
+                            }}
+                        />
+                    </AuthProvider>
+                </ErrorBoundary>
             </body>
         </html>
     );

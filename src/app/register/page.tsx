@@ -44,9 +44,9 @@ export default function RegisterPage() {
         <main className="flex min-h-screen items-center justify-center p-24 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
             <div className="w-full max-w-md">
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-                    <h1 className="text-3xl font-bold mb-2 text-center">Create Account</h1>
+                    <h1 className="text-3xl font-bold mb-2 text-center">Tạo tài khoản</h1>
                     <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-                        Start your personalized AI journey
+                        Bắt đầu hành trình AI cá nhân hóa của bạn
                     </p>
 
                     {error && (
@@ -73,7 +73,7 @@ export default function RegisterPage() {
 
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium mb-2">
-                                Password
+                                Mật khẩu
                             </label>
                             <input
                                 id="password"
@@ -88,7 +88,7 @@ export default function RegisterPage() {
 
                         <div>
                             <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
-                                Confirm Password
+                                Xác nhận mật khẩu
                             </label>
                             <input
                                 id="confirmPassword"
@@ -106,15 +106,15 @@ export default function RegisterPage() {
                             disabled={loading}
                             className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Creating account...' : 'Register'}
+                            {loading ? 'Đang tạo tài khoản...' : 'Đăng ký'}
                         </button>
                     </form>
 
                     <div className="mt-6 text-center">
                         <p className="text-gray-600 dark:text-gray-400">
-                            Already have an account?{' '}
+                            Đã có tài khoản?{' '}
                             <Link href="/login" className="text-blue-600 hover:underline font-semibold">
-                                Login
+                                Đăng nhập
                             </Link>
                         </p>
                     </div>

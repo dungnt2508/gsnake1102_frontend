@@ -1,0 +1,55 @@
+import apiClient from '../lib/api-client';
+
+export interface Article {
+    id: string;
+    title: string;
+    summary: string;
+    source_type: 'url' | 'rss' | 'file';
+    source_value: string;
+    status: 'pending' | 'processing' | 'done' | 'failed';
+    created_at: string;
+}
+
+export interface Summary {
+    id: string;
+    article_id: string;
+    summary_text: string;
+    insights_json: string[];
+    data_points_json: string[];
+    created_at: string;
+}
+
+export const summaryService = {
+    processUrl: async (url: string) => {
+        const response = await apiClient.post('/sources/url', { url });
+        return response.data;
+    },
+
+    processRss: async (url: string) => {
+        const response = await apiClient.post('/sources/rss', { url });
+        return response.data;
+    },
+
+    processFile: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post('/sources/file', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    getSummaries: async (limit: number = 20, offset: number = 0) => {
+        const response = await apiClient.get('/summaries', {
+            params: { limit, offset },
+        });
+        return response.data;
+    },
+
+    getSummary: async (id: string) => {
+        const response = await apiClient.get(`/summaries/${id}`);
+        return response.data;
+    },
+};

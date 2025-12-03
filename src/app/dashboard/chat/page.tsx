@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import apiClient from '@/lib/api-client';
+import toast from 'react-hot-toast';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -15,6 +16,26 @@ export default function ChatPage() {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
+
+    // Load message history from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem(`chat-history-${user?.userId}`);
+        if (saved) {
+            try {
+                setMessages(JSON.parse(saved));
+            } catch (e) {
+                console.error('Failed to load chat history:', e);
+            }
+        }
+    }, [user?.userId]);
+
+    // Save messages to localStorage
+    useEffect(() => {
+        if (messages.length > 0 && user?.userId) {
+            localStorage.setItem(`chat-history-${user?.userId}`, JSON.stringify(messages));
+        }
+    }, [messages, user?.userId]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,6 +44,15 @@ export default function ChatPage() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,7 +72,18 @@ export default function ChatPage() {
 
             // Use fetch directly for streaming support (axios streaming is trickier)
             const token = localStorage.getItem('token');
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/chat`, {
+            
+            if (!token) {
+                throw new Error('Bạn cần đăng nhập để sử dụng tính năng chat');
+            }
+            
+            // Create abort controller for cleanup
+            abortControllerRef.current = new AbortController();
+            
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/chat`;
+            console.log('Sending chat request to:', apiUrl);
+            
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -52,9 +93,21 @@ export default function ChatPage() {
                     messages: apiMessages,
                     stream: true,
                 }),
+                signal: abortControllerRef.current.signal,
             });
 
-            if (!response.ok) throw new Error('Chat failed');
+            if (!response.ok) {
+                // Try to get error message from response
+                let errorMessage = `Chat failed (${response.status})`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorData.error || errorMessage;
+                } catch (e) {
+                    // If response is not JSON, use status text
+                    errorMessage = response.statusText || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
             if (!response.body) throw new Error('No response body');
 
             // Create a placeholder for the assistant's response
@@ -64,44 +117,100 @@ export default function ChatPage() {
             const decoder = new TextDecoder();
             let assistantMessage = '';
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
 
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
 
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const dataStr = line.slice(6);
-                        if (dataStr === '[DONE]') break;
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.slice(6);
+                            if (dataStr === '[DONE]') break;
 
-                        try {
-                            const data = JSON.parse(dataStr);
-                            if (data.content) {
-                                assistantMessage += data.content;
+                            try {
+                                const data = JSON.parse(dataStr);
+                                
+                                // Check for error in SSE data
+                                if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                                
+                                if (data.content) {
+                                    assistantMessage += data.content;
 
-                                // Update the last message (assistant's) with new content
-                                setMessages((prev) => {
-                                    const newMessages = [...prev];
-                                    const lastMsg = newMessages[newMessages.length - 1];
-                                    if (lastMsg.role === 'assistant') {
-                                        lastMsg.content = assistantMessage;
-                                    }
-                                    return newMessages;
-                                });
+                                    // Update the last message (assistant's) with new content
+                                    setMessages((prev) => {
+                                        const newMessages = [...prev];
+                                        const lastMsg = newMessages[newMessages.length - 1];
+                                        if (lastMsg.role === 'assistant') {
+                                            lastMsg.content = assistantMessage;
+                                        }
+                                        return newMessages;
+                                    });
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data', e);
+                                // If it's an error from backend, throw it
+                                if (e instanceof Error && e.message) {
+                                    throw e;
+                                }
                             }
-                        } catch (e) {
-                            console.error('Error parsing SSE data', e);
                         }
                     }
                 }
+            } catch (readError) {
+                if (readError instanceof Error && readError.name === 'AbortError') {
+                    console.log('Chat stream aborted');
+                    return;
+                }
+                throw readError;
             }
-        } catch (error) {
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                console.log('Chat request aborted');
+                return;
+            }
             console.error('Chat error:', error);
-            setMessages((prev) => [...prev, { role: 'assistant', content: '⚠️ Lỗi kết nối. Vui lòng thử lại.' }]);
+            
+            // Get error message with more details
+            let errorMessage = 'Lỗi kết nối. Vui lòng thử lại.';
+            
+            if (error.message) {
+                errorMessage = error.message;
+            } else if (error.name === 'TypeError' && error.message?.includes('fetch')) {
+                errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra xem backend có đang chạy không.';
+            } else if (error.message?.includes('Failed to fetch')) {
+                errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra:\n- Backend có đang chạy không (http://localhost:3001)\n- CORS đã được cấu hình đúng chưa';
+            }
+            
+            setMessages((prev) => {
+                const newMessages = [...prev];
+                const lastMsg = newMessages[newMessages.length - 1];
+                if (lastMsg.role === 'assistant' && !lastMsg.content) {
+                    lastMsg.content = `⚠️ ${errorMessage}`;
+                } else {
+                    newMessages.push({ role: 'assistant', content: `⚠️ ${errorMessage}` });
+                }
+                return newMessages;
+            });
+            
+            // Show toast notification
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
+            abortControllerRef.current = null;
+        }
+    };
+
+    const handleClearChat = () => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện?')) {
+            setMessages([]);
+            if (user?.userId) {
+                localStorage.removeItem(`chat-history-${user.userId}`);
+            }
         }
     };
 
@@ -109,8 +218,18 @@ export default function ChatPage() {
         <div className="flex flex-col h-[calc(100vh-8rem)]">
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">💬 Trò chuyện với Bot</h1>
-                <div className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
-                    Persona đang dùng: <span className="font-semibold text-blue-600">Mặc định</span>
+                <div className="flex items-center gap-3">
+                    {messages.length > 0 && (
+                        <button
+                            onClick={handleClearChat}
+                            className="text-sm text-gray-500 hover:text-red-600 dark:hover:text-red-400 px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        >
+                            🗑️ Xóa lịch sử
+                        </button>
+                    )}
+                    <div className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                        Persona đang dùng: <span className="font-semibold text-blue-600">Mặc định</span>
+                    </div>
                 </div>
             </div>
 
