@@ -1,8 +1,9 @@
-export interface User {
-    id: string;
-    email: string;
-}
+// Re-export shared types
+export type { UserDto as User } from '@gsnake/shared-types';
+export type { ArticleDto as Article } from '@gsnake/shared-types';
+export { ArticleStatus, SourceType } from '@gsnake/shared-types';
 
+// Local types (not shared with backend)
 export interface Persona {
     id: string;
     user_id: string;
@@ -11,18 +12,6 @@ export interface Persona {
     topics_interest: string[];
     created_at: string;
     updated_at: string;
-}
-
-export interface Article {
-    id: string;
-    url: string;
-    title?: string;
-    fetched_at?: string;
-    summary?: string;
-    source?: string;
-    user_id: string;
-    workflow_id?: string;
-    status: 'pending' | 'processing' | 'done' | 'failed';
 }
 
 export interface Schedule {

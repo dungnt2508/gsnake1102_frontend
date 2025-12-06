@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import apiClient from '@/lib/api-client';
+// Note: chat page uses fetch directly for streaming, no apiClient needed
 import toast from 'react-hot-toast';
 
 interface Message {

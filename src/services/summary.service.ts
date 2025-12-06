@@ -1,4 +1,4 @@
-import apiClient from '../lib/api-client';
+import { apiClient } from '@/shared/api/client';
 
 export interface Article {
     id: string;
@@ -21,35 +21,40 @@ export interface Summary {
 
 export const summaryService = {
     processUrl: async (url: string) => {
+        // apiClient.post() already unwraps response.data, so response is already the data
         const response = await apiClient.post('/sources/url', { url });
-        return response.data;
+        return response;
     },
 
     processRss: async (url: string) => {
+        // apiClient.post() already unwraps response.data, so response is already the data
         const response = await apiClient.post('/sources/rss', { url });
-        return response.data;
+        return response;
     },
 
     processFile: async (file: File) => {
         const formData = new FormData();
         formData.append('file', file);
+        // apiClient.post() already unwraps response.data, so response is already the data
         const response = await apiClient.post('/sources/file', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
         });
-        return response.data;
+        return response;
     },
 
     getSummaries: async (limit: number = 20, offset: number = 0) => {
+        // apiClient.get() already unwraps response.data, so response is already the data
         const response = await apiClient.get('/summaries', {
             params: { limit, offset },
         });
-        return response.data;
+        return response;
     },
 
     getSummary: async (id: string) => {
+        // apiClient.get() already unwraps response.data, so response is already the data
         const response = await apiClient.get(`/summaries/${id}`);
-        return response.data;
+        return response;
     },
 };

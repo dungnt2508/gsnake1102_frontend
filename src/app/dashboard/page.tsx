@@ -1,129 +1,61 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import apiClient from '@/lib/api-client';
-
-interface DashboardStats {
-    articles: {
-        total: number;
-        newThisWeek: number;
-    };
-    tools: {
-        total: number;
-        processing: number;
-    };
-    schedules: {
-        total: number;
-        nextFetch?: string;
-    };
-    persona: {
-        tone?: string;
-        language_style?: string;
-    };
-}
+import { useDashboardStats } from '@/features/dashboard/hooks/useDashboardStats';
+import apiClient from '@/shared/api/client';
+import { useQuery } from '@tanstack/react-query';
 
 export default function DashboardPage() {
-    const router = useRouter();
-    const [stats, setStats] = useState<DashboardStats | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [recentActivities, setRecentActivities] = useState<any[]>([]);
+    const { stats, isLoading } = useDashboardStats();
 
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
+    // Fetch articles and tools for recent activities
+    const articles = useQuery({
+        queryKey: ['articles', { limit: 100 }],
+        queryFn: async () => {
+            // apiClient.get() already unwraps response.data, so response is already the data
+            const response = await apiClient.get<{ articles: any[] }>('/articles?limit=100');
+            return response?.articles || [];
+        },
+    });
 
-    const fetchDashboardData = async () => {
-        try {
-            setLoading(true);
-            
-            // Fetch articles
-            const articlesRes = await apiClient.get('/articles?limit=100');
-            const articles = articlesRes.data.data.articles || [];
-            
-            // Calculate new articles this week
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            const newThisWeek = articles.filter((a: any) => 
-                new Date(a.created_at) > oneWeekAgo
-            ).length;
+    const tools = useQuery({
+        queryKey: ['tools', { limit: 100 }],
+        queryFn: async () => {
+            // apiClient.get() already unwraps response.data, so response is already the data
+            const response = await apiClient.get<{ tools: any[] }>('/tools?limit=100');
+            return response?.tools || [];
+        },
+    });
 
-            // Fetch tools
-            const toolsRes = await apiClient.get('/tools?limit=100');
-            const tools = toolsRes.data.data.tools || [];
-            const processingTools = tools.filter((t: any) => 
-                t.status === 'processing' || t.status === 'pending'
-            ).length;
+    // Calculate recent activities
+    const recentActivities = useMemo(() => {
+        if (!articles.data || !tools.data) return [];
 
-            // Fetch schedules
-            const schedulesRes = await apiClient.get('/schedules');
-            const schedules = schedulesRes.data.data.schedules || [];
-            
-            // Find next fetch time
-            const activeSchedules = schedules.filter((s: any) => s.active);
-            const nextFetch = activeSchedules.length > 0 
-                ? activeSchedules.sort((a: any, b: any) => 
-                    new Date(a.next_fetch).getTime() - new Date(b.next_fetch).getTime()
-                  )[0]?.next_fetch
-                : undefined;
+        const recentArticles = articles.data
+            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 2)
+            .map((a: any) => ({
+                type: 'article',
+                text: `Đã tóm tắt bài báo "${a.title || a.url?.substring(0, 30)}"`,
+                status: a.status,
+                time: a.created_at,
+            }));
 
-            // Fetch persona
-            let persona = { tone: '', language_style: '' };
-            try {
-                const personaRes = await apiClient.get('/personas');
-                persona = personaRes.data.data.persona || {};
-            } catch (err) {
-                // Persona might not exist
-            }
+        const recentTools = tools.data
+            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 1)
+            .map((t: any) => ({
+                type: 'tool',
+                text: `Hoàn thành yêu cầu tool "${t.request_payload?.description?.substring(0, 30) || 'Tool request'}"`,
+                status: t.status,
+                time: t.created_at,
+            }));
 
-            setStats({
-                articles: {
-                    total: articles.length,
-                    newThisWeek,
-                },
-                tools: {
-                    total: tools.length,
-                    processing: processingTools,
-                },
-                schedules: {
-                    total: schedules.length,
-                    nextFetch,
-                },
-                persona,
-            });
-
-            // Get recent activities (last 3 articles and tools)
-            const recentArticles = articles
-                .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 2)
-                .map((a: any) => ({
-                    type: 'article',
-                    text: `Đã tóm tắt bài báo "${a.title || a.url?.substring(0, 30)}"`,
-                    status: a.status,
-                    time: a.created_at,
-                }));
-
-            const recentTools = tools
-                .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 1)
-                .map((t: any) => ({
-                    type: 'tool',
-                    text: `Hoàn thành yêu cầu tool "${t.request_payload?.description?.substring(0, 30) || 'Tool request'}"`,
-                    status: t.status,
-                    time: t.created_at,
-                }));
-
-            setRecentActivities([...recentArticles, ...recentTools].sort((a, b) => 
-                new Date(b.time).getTime() - new Date(a.time).getTime()
-            ).slice(0, 3));
-
-        } catch (error) {
-            console.error('Failed to fetch dashboard data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        return [...recentArticles, ...recentTools]
+            .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+            .slice(0, 3);
+    }, [articles.data, tools.data]);
 
     const formatTimeAgo = (dateString: string) => {
         const date = new Date(dateString);
@@ -173,7 +105,7 @@ export default function DashboardPage() {
         return `${toneMap[stats.persona.tone || ''] || stats.persona.tone} / ${styleMap[stats.persona.language_style || ''] || stats.persona.language_style}`;
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

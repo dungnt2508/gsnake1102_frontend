@@ -1,4 +1,4 @@
-import apiClient from '@/lib/api-client';
+import { apiClient } from '@/shared/api/client';
 
 export interface Schedule {
     id: string;
@@ -24,24 +24,27 @@ export const scheduleService = {
      * Get all schedules for current user
      */
     async getSchedules(): Promise<Schedule[]> {
-        const response = await apiClient.get('/schedules');
-        return response.data.data.schedules || [];
+        // apiClient.get() already unwraps response.data, so response is already the data
+        const response = await apiClient.get<{ schedules: Schedule[] }>('/schedules');
+        return response?.schedules || [];
     },
 
     /**
      * Create a new schedule
      */
     async createSchedule(data: CreateScheduleInput): Promise<Schedule> {
-        const response = await apiClient.post('/schedules', data);
-        return response.data.data.schedule;
+        // apiClient.post() already unwraps response.data, so response is already the data
+        const response = await apiClient.post<{ schedule: Schedule }>('/schedules', data);
+        return response?.schedule;
     },
 
     /**
      * Update a schedule
      */
     async updateSchedule(id: string, data: Partial<CreateScheduleInput & { frequency: string }>): Promise<Schedule> {
-        const response = await apiClient.put(`/schedules/${id}`, data);
-        return response.data.data.schedule;
+        // apiClient.put() already unwraps response.data, so response is already the data
+        const response = await apiClient.put<{ schedule: Schedule }>(`/schedules/${id}`, data);
+        return response?.schedule;
     },
 
     /**

@@ -15,8 +15,8 @@ interface TemplateCardProps {
 
 export default function TemplateCard({ id, title, description, price, author, downloads, rating, tags, color = 'from-blue-600 to-purple-600' }: TemplateCardProps) {
     return (
-        <Link href={`/product/${id}`} className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#111218] hover:border-slate-700 transition-all hover:shadow-2xl hover:shadow-orange-500/5 hover:-translate-y-1">
-            <div className="aspect-[16/9] w-full bg-slate-900 relative overflow-hidden">
+        <Link href={`/product/${id}`} className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-[#111218] hover:border-gray-300 dark:hover:border-slate-700 transition-all hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1">
+                <div className="aspect-[16/9] w-full bg-gray-100 dark:bg-slate-900 relative overflow-hidden">
                 {/* Gradient Background as placeholder */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-80 group-hover:opacity-100 transition-opacity duration-500`}></div>
 
@@ -39,29 +39,29 @@ export default function TemplateCard({ id, title, description, price, author, do
             <div className="flex flex-1 flex-col p-5">
                 <div className="flex gap-2 mb-3 flex-wrap">
                     {tags.slice(0, 2).map(tag => (
-                        <span key={tag} className="text-[10px] uppercase tracking-wider font-bold text-slate-400 bg-slate-800/50 px-2 py-1 rounded-md border border-slate-800">
+                        <span key={tag} className="text-[10px] uppercase tracking-wider font-bold text-gray-600 dark:text-slate-400 bg-gray-100 dark:bg-slate-800/50 px-2 py-1 rounded-md border border-gray-200 dark:border-slate-800">
                             {tag}
                         </span>
                     ))}
                 </div>
 
-                <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-orange-400 transition-colors">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-primary transition-colors">
                     {title}
                 </h3>
 
-                <p className="text-sm text-slate-400 mb-5 line-clamp-2 flex-1 leading-relaxed">
+                <p className="text-sm text-gray-600 dark:text-slate-400 mb-5 line-clamp-2 flex-1 leading-relaxed">
                     {description}
                 </p>
 
-                <div className="mt-auto flex items-center justify-between border-t border-slate-800/50 pt-4">
+                <div className="mt-auto flex items-center justify-between border-t border-gray-200 dark:border-slate-800/50 pt-4">
                     <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-gradient-to-r from-slate-700 to-slate-600 flex items-center justify-center ring-2 ring-[#111218]">
-                            <User className="h-3 w-3 text-slate-300" />
+                        <div className="h-6 w-6 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center ring-2 ring-white dark:ring-[#111218]">
+                            <User className="h-3 w-3 text-gray-700 dark:text-slate-300" />
                         </div>
-                        <span className="text-xs font-medium text-slate-300 hover:text-white cursor-pointer transition-colors">{author}</span>
+                        <span className="text-xs font-medium text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white cursor-pointer transition-colors">{author}</span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-500">
                         <div className="flex items-center gap-1">
                             <Download className="h-3 w-3" />
                             {downloads}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import apiClient from '@/lib/api-client';
+import { apiClient } from '@/shared/api/client';
 import { Article } from '@/types';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -39,7 +39,7 @@ export default function ArticlesPage() {
         try {
             setLoading(true);
             const res = await apiClient.get(`/articles?limit=${limit}&offset=${(page - 1) * limit}`);
-            const fetchedArticles = res.data.data.articles || [];
+            const fetchedArticles = res.data?.articles || [];
             
             // Check for status changes (for notifications)
             if (showNotification && previousArticlesRef.current.length > 0) {

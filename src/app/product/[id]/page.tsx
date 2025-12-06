@@ -1,42 +1,117 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Navbar from "@/components/marketplace/Navbar";
 import Footer from "@/components/marketplace/Footer";
-import { ArrowLeft, Check, Shield } from "lucide-react";
+import productService, { Product } from '@/services/product.service';
+import { ArrowLeft, Check, Shield, Download, MessageCircle, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-
-const MOCK_PRODUCT = {
-  id: 1,
-  title: "Workflow: Tóm tắt đa nguồn (URL/RSS/File)",
-  description:
-    "Pipeline n8n nhận URL/RSS/File, crawl nội dung, làm sạch, gửi LLM cùng persona user và lưu summary.",
-  features: [
-    "Hỗ trợ nhiều nguồn: URL, RSS, file upload",
-    "Chuẩn hóa text trước khi gửi LLM",
-    "Lưu summary + insights + data_points vào DB",
-    "Có thể trigger thủ công hoặc qua schedule",
-  ],
-  requirements: [
-    "n8n self-host hoặc cloud",
-    "OpenAI API key",
-    "Backend đã expose webhook nhận callback",
-  ],
-  isFree: true,
-};
+import toast from 'react-hot-toast';
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const productId = params?.id;
+  const productId = params?.id as string;
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId]);
+
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      const data = await productService.getProduct(productId);
+      setProduct(data);
+    } catch (error: any) {
+      toast.error('Không thể tải thông tin sản phẩm');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!product) return;
+    
+    try {
+      // Record download
+      await productService.recordDownload(product.id);
+      
+      // If workflow file URL exists, open it
+      if (product.workflow_file_url) {
+        window.open(product.workflow_file_url, '_blank');
+        toast.success('Đang tải workflow...');
+      } else {
+        toast.error('Workflow file chưa được cung cấp');
+      }
+    } catch (error: any) {
+      toast.error('Không thể tải workflow');
+    }
+  };
+
+  const handleContact = () => {
+    window.location.href = '/contact';
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffDays === 0) return 'Hôm nay';
+    if (diffDays === 1) return 'Hôm qua';
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#0B0C10] text-gray-900 dark:text-slate-200 font-sans">
+        <Navbar />
+        <main className="container mx-auto px-4 py-12">
+          <div className="text-center py-12">
+            <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-400">Đang tải...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#0B0C10] text-gray-900 dark:text-slate-200 font-sans">
+        <Navbar />
+        <main className="container mx-auto px-4 py-12">
+          <div className="text-center py-12">
+            <p className="text-slate-400 mb-4">Không tìm thấy sản phẩm</p>
+            <Link
+              href="/products"
+              className="text-primary hover:text-[#FF8559] transition-colors"
+            >
+              Quay lại danh sách sản phẩm
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#0B0C10] text-slate-200">
+    <div className="min-h-screen bg-[#0B0C10] text-slate-200 font-sans">
       <Navbar />
 
       <main className="container mx-auto px-4 py-12">
         <Link
           href="/products"
-          className="inline-flex items-center text-slate-400 hover:text-white mb-8 transition-colors"
+          className="inline-flex items-center text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white mb-8 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Quay lại danh sách sản phẩm
@@ -45,87 +120,148 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <section className="lg:col-span-2 space-y-6">
             <header>
-              <h1 className="text-3xl font-bold text-white mb-3">
-                {MOCK_PRODUCT.title}
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                {product.title}
               </h1>
-              <p className="text-slate-400 max-w-2xl">
-                {MOCK_PRODUCT.description}
+              <p className="text-gray-600 dark:text-slate-400 max-w-2xl mb-4">
+                {product.description}
               </p>
-              <p className="text-xs text-slate-500 mt-2">
-                ID: {productId as string}
-              </p>
+              <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-slate-500">
+                <span>Tác giả: Team gsnake</span>
+                <span>•</span>
+                <span>{product.downloads} lượt tải</span>
+                <span>•</span>
+                <span>⭐ {product.rating.toFixed(1)}</span>
+              </div>
             </header>
 
-            <div className="bg-[#111218] border border-slate-800 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">
-                Ảnh / preview workflow
-              </h2>
-              <div className="aspect-video rounded-xl border border-dashed border-slate-700 bg-slate-900/40 flex items-center justify-center text-slate-500 text-sm">
-                Khu vực hiển thị ảnh workflow hoặc video demo
+            {product.long_description && (
+              <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Mô tả chi tiết
+                </h2>
+                <div 
+                  className="text-gray-700 dark:text-slate-300 leading-relaxed prose prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: product.long_description }}
+                />
               </div>
+            )}
+
+            <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Ảnh / Preview workflow
+              </h2>
+              {product.preview_image_url ? (
+                <div className="aspect-video rounded-xl overflow-hidden">
+                  <img
+                    src={product.preview_image_url}
+                    alt={product.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="aspect-video rounded-xl border border-dashed border-gray-300 dark:border-slate-700 bg-gray-100 dark:bg-slate-900/40 flex items-center justify-center text-gray-500 dark:text-slate-500 text-sm">
+                  <div className="text-center">
+                    <ExternalLink className="h-12 w-12 mx-auto mb-2 text-gray-400 dark:text-slate-600" />
+                    <p>Chưa có preview</p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="bg-[#111218] border border-slate-800 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">
-                Tính năng chính
-              </h2>
-              <ul className="space-y-3 text-sm text-slate-200">
-                {MOCK_PRODUCT.features.map((f) => (
-                  <li key={f} className="flex gap-3 items-start">
-                    <Check className="h-4 w-4 text-emerald-400 mt-0.5" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {product.features && product.features.length > 0 && (
+              <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Tính năng chính
+                </h2>
+                <ul className="space-y-3">
+                  {product.features.map((f, idx) => (
+                    <li key={idx} className="flex gap-3 items-start">
+                      <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-slate-200">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            <div className="bg-[#111218] border border-slate-800 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">
-                Hướng dẫn cài đặt cơ bản
-              </h2>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-slate-200">
-                <li>Import workflow vào n8n.</li>
-                <li>Cấu hình các credential (OpenAI, webhook backend, ...).</li>
-                <li>Test với 1 URL hoặc RSS feed mẫu.</li>
-                <li>
-                  Kết nối với backend hiện tại thông qua webhook đã mô tả trong
-                  README.
-                </li>
-              </ol>
-            </div>
+            {product.install_guide && (
+              <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Hướng dẫn cài đặt cơ bản
+                </h2>
+                <div className="text-gray-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                  {product.install_guide}
+                </div>
+              </div>
+            )}
           </section>
 
           <aside className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
-              <div className="bg-[#111218] border border-slate-800 rounded-2xl p-6">
-                <p className="text-sm text-slate-400 mb-2">Trạng thái</p>
-                <p className="text-2xl font-bold text-white mb-4">
-                  {MOCK_PRODUCT.isFree ? "Miễn phí" : "Trả phí"}
-                </p>
+              <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
+                <div className="mb-6">
+                  <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">Trạng thái</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {product.is_free ? "Miễn phí" : `${product.price?.toLocaleString('vi-VN')} VNĐ`}
+                  </p>
+                </div>
 
-                <button className="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold py-3 rounded-xl mb-3 transition-colors">
-                  Tải workflow
+                <button
+                  onClick={handleDownload}
+                  className="w-full bg-primary hover:bg-[#FF8559] text-white font-semibold py-3 rounded-lg mb-3 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  {product.workflow_file_url ? 'Tải workflow' : 'Liên hệ để tải'}
                 </button>
-                <button className="w-full border border-slate-700 hover:border-orange-500 text-slate-100 hover:text-white font-semibold py-3 rounded-xl transition-colors">
+                
+                <button
+                  onClick={handleContact}
+                  className="w-full border border-gray-300 dark:border-slate-700 hover:border-primary text-gray-700 dark:text-slate-100 hover:text-gray-900 dark:hover:text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
                   Liên hệ team để cài đặt
                 </button>
 
-                <div className="flex items-center gap-2 text-xs text-slate-500 mt-4">
-                  <Shield className="h-3 w-3 text-emerald-400" />
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-500 mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
+                  <Shield className="h-3 w-3 text-primary" />
                   <span>Workflow nội bộ, có thể chỉnh sửa theo yêu cầu.</span>
                 </div>
               </div>
 
-              <div className="bg-[#111218] border border-slate-800 rounded-2xl p-6">
-                <h3 className="text-sm font-semibold text-white mb-3">
-                  Yêu cầu tích hợp
-                </h3>
-                <ul className="space-y-2 text-sm text-slate-200">
-                  {MOCK_PRODUCT.requirements.map((r) => (
-                    <li key={r}>{r}</li>
-                  ))}
-                </ul>
-              </div>
+              {product.requirements && product.requirements.length > 0 && (
+                <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                    Yêu cầu tích hợp
+                  </h3>
+                  <ul className="space-y-2 text-sm text-gray-700 dark:text-slate-200">
+                    {product.requirements.map((r, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-primary mt-1">•</span>
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {product.version && (
+                <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                    Thông tin phiên bản
+                  </h3>
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-slate-400">
+                    <div className="flex justify-between">
+                      <span>Phiên bản:</span>
+                      <span className="text-gray-900 dark:text-slate-200">{product.version}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Cập nhật:</span>
+                      <span className="text-gray-900 dark:text-slate-200">{formatDate(product.updated_at)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </aside>
         </div>
@@ -135,5 +271,3 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-
-

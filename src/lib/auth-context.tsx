@@ -1,11 +1,17 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import apiClient from '@/lib/api-client';
+import { apiClient } from '@/shared/api/client';
+import { UserDto, UserRole, SellerStatus } from '@gsnake/shared-types';
+import { getRoleRedirectRoute } from '@/utils/role-redirect';
 
-interface User {
-    userId: string;
-    email: string;
+// Extended User interface for auth context (includes additional fields from /auth/me endpoint)
+// Note: Backend returns snake_case fields in /auth/me response
+interface User extends Omit<UserDto, 'id'> {
+    userId: string; // Backend returns userId in /auth/me
+    seller_status?: string | null; // Backend returns snake_case
+    seller_approved_at?: string | null; // Backend returns snake_case
+    seller_rejection_reason?: string | null; // Backend returns snake_case
 }
 
 interface AuthContextType {
@@ -15,6 +21,7 @@ interface AuthContextType {
     register: (email: string, password: string) => Promise<void>;
     logout: () => void;
     loading: boolean;
+    getRedirectRoute: () => string; // Get redirect route based on user role
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,8 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchUser = async () => {
         try {
-            const response = await apiClient.get('/auth/me');
-            setUser(response.data.data.user);
+            const response = await apiClient.get<{ user: any }>('/auth/me');
+            // apiClient.get() already unwraps response.data, so response is already the data
+            setUser(response.user);
         } catch (error) {
             console.error('Failed to fetch user:', error);
             localStorage.removeItem('token');
@@ -51,27 +59,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (email: string, password: string) => {
         try {
-            const response = await apiClient.post('/auth/login', { email, password });
-            const { token: newToken, user: newUser } = response.data.data;
+            const response = await apiClient.post<{ token: string; user: any }>('/auth/login', { email, password });
+            // apiClient.post() already unwraps response.data, so response is already the data
+            const { token: newToken, user: newUser } = response;
 
             localStorage.setItem('token', newToken);
             setToken(newToken);
-            setUser(newUser);
+            setUser({
+                userId: newUser.id,
+                email: newUser.email,
+                role: newUser.role,
+            });
         } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Đăng nhập thất bại');
+            // apiClient formats errors as ErrorResponse, so error.message is available directly
+            throw new Error(error.message || error.response?.data?.message || 'Đăng nhập thất bại');
         }
     };
 
     const register = async (email: string, password: string) => {
         try {
-            const response = await apiClient.post('/auth/register', { email, password });
-            const { token: newToken, user: newUser } = response.data.data;
+            const response = await apiClient.post<{ token: string; user: any }>('/auth/register', { email, password });
+            // apiClient.post() already unwraps response.data, so response is already the data
+            const { token: newToken, user: newUser } = response;
 
             localStorage.setItem('token', newToken);
             setToken(newToken);
-            setUser(newUser);
+            setUser({
+                userId: newUser.id,
+                email: newUser.email,
+                role: newUser.role,
+            });
         } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Đăng ký thất bại');
+            // apiClient formats errors as ErrorResponse, so error.message is available directly
+            // Check for validation errors details
+            if (error.details && Array.isArray(error.details)) {
+                const details = error.details.map((d: any) => d.message).join(', ');
+                throw new Error(`${error.message || 'Đăng ký thất bại'}: ${details}`);
+            }
+            throw new Error(error.message || error.response?.data?.message || 'Đăng ký thất bại');
         }
     };
 
@@ -85,8 +110,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    /**
+     * Get the default redirect route based on user role
+     */
+    const getRedirectRoute = (): string => {
+        if (!user || !user.role) {
+            return '/'; // Default to home if no user or role
+        }
+        return getRoleRedirectRoute(user.role);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, token, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, token, login, register, logout, loading, getRedirectRoute }}>
             {children}
         </AuthContext.Provider>
     );

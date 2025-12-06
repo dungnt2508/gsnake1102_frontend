@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import apiClient from '@/lib/api-client';
+import { apiClient } from '@/shared/api/client';
 import { Persona } from '@/types';
 
 export default function PersonaSettings() {
@@ -23,7 +23,7 @@ export default function PersonaSettings() {
     const fetchPersona = async () => {
         try {
             const res = await apiClient.get('/personas');
-            const p = res.data.data.persona;
+            const p = res.data?.persona;
             setPersona(p);
             setTone(p.tone);
             setStyle(p.language_style);
@@ -56,7 +56,8 @@ export default function PersonaSettings() {
             setMessage('Lưu Persona thành công! 🎉');
             fetchPersona(); // Refresh
         } catch (err: any) {
-            setMessage('Lỗi khi lưu: ' + (err.response?.data?.message || err.message));
+            // apiClient formats errors as ErrorResponse, so err.message is available directly
+            setMessage('Lỗi khi lưu: ' + (err.message || err.response?.data?.message || 'Unknown error'));
         } finally {
             setSaving(false);
         }

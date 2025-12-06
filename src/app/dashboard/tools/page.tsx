@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import apiClient from '@/lib/api-client';
+import { apiClient } from '@/shared/api/client';
 import { ToolRequest } from '@/types';
 import toast from 'react-hot-toast';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -38,7 +38,7 @@ export default function ToolsPage() {
         try {
             setLoading(true);
             const res = await apiClient.get(`/tools?limit=${limit}&offset=${(page - 1) * limit}`);
-            const fetchedTools = res.data.data.tools || [];
+            const fetchedTools = res.data?.tools || [];
             
             // Check for status changes (for notifications)
             if (showNotification && previousToolsRef.current.length > 0) {
@@ -75,7 +75,8 @@ export default function ToolsPage() {
             toast.success('Yêu cầu công cụ đã được gửi!');
             fetchTools();
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
+            // apiClient formats errors as ErrorResponse, so err.message is available directly
+            toast.error(err.message || err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
         } finally {
             setSubmitting(false);
         }

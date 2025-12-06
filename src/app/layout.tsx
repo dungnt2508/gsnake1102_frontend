@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import { ThemeProvider } from "@/lib/theme-context";
+import { QueryProvider } from "@/shared/providers/query-provider";
 import { Toaster } from "react-hot-toast";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SuppressExtensionErrors } from "@/components/SuppressExtensionErrors";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -18,36 +21,41 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className={inter.className}>
+        <html lang="en" suppressHydrationWarning>
+            <body className={inter.className} suppressHydrationWarning>
+                <SuppressExtensionErrors />
                 <ErrorBoundary>
-                    <AuthProvider>
-                        {children}
-                        <Toaster
-                            position="top-right"
-                            toastOptions={{
-                                duration: 4000,
-                                style: {
-                                    background: '#363636',
-                                    color: '#fff',
-                                },
-                                success: {
-                                    duration: 3000,
-                                    iconTheme: {
-                                        primary: '#10b981',
-                                        secondary: '#fff',
-                                    },
-                                },
-                                error: {
+                    <QueryProvider>
+                        <ThemeProvider>
+                            <AuthProvider>
+                                {children}
+                            <Toaster
+                                position="top-right"
+                                toastOptions={{
                                     duration: 4000,
-                                    iconTheme: {
-                                        primary: '#ef4444',
-                                        secondary: '#fff',
+                                    style: {
+                                        background: '#363636',
+                                        color: '#fff',
                                     },
-                                },
-                            }}
-                        />
-                    </AuthProvider>
+                                    success: {
+                                        duration: 3000,
+                                        iconTheme: {
+                                            primary: '#10b981',
+                                            secondary: '#fff',
+                                        },
+                                    },
+                                    error: {
+                                        duration: 4000,
+                                        iconTheme: {
+                                            primary: '#ef4444',
+                                            secondary: '#fff',
+                                        },
+                                    },
+                                }}
+                            />
+                            </AuthProvider>
+                        </ThemeProvider>
+                    </QueryProvider>
                 </ErrorBoundary>
             </body>
         </html>

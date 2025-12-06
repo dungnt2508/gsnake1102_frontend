@@ -1,14 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import apiClient from '@/lib/api-client';
+import { apiClient } from '@/shared/api/client';
+import Navbar from '@/components/marketplace/Navbar';
+import Footer from '@/components/marketplace/Footer';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { login } = useAuth();
+    const searchParams = useSearchParams();
+    const { login, getRedirectRoute } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -21,9 +25,12 @@ export default function LoginPage() {
 
         try {
             await login(email, password);
-            router.push('/dashboard');
+            // Redirect based on user role, or return to previous page if specified
+            const returnTo = searchParams.get('returnTo') || getRedirectRoute();
+            router.push(returnTo);
         } catch (err: any) {
-            setError(err.message || 'Login failed');
+            // apiClient formats errors as ErrorResponse, so err.message is available directly
+            setError(err.message || err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.');
         } finally {
             setLoading(false);
         }
@@ -31,9 +38,10 @@ export default function LoginPage() {
 
     const handleAzureLogin = async () => {
         try {
-            const response = await apiClient.get('/auth/azure');
-            const authUrl = response.data.data.authUrl;
-            // Redirect to Azure login
+            setError('');
+            // apiClient.get() already unwraps response.data, so response is already the data
+            const response = await apiClient.get<{ authUrl: string }>('/auth/azure');
+            const authUrl = response.authUrl;
             window.location.href = authUrl;
         } catch (err: any) {
             setError('Không thể kết nối với Azure. Vui lòng thử lại.');
@@ -41,94 +49,124 @@ export default function LoginPage() {
     };
 
     return (
-        <main className="flex min-h-screen items-center justify-center p-24 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-            <div className="w-full max-w-md">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-                    <h1 className="text-3xl font-bold mb-2 text-center">Chào mừng trở lại</h1>
-                    <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-                        Đăng nhập vào trợ lý AI cá nhân của bạn
-                    </p>
+        <div className="min-h-screen bg-white dark:bg-[#0B0C10] text-gray-900 dark:text-slate-200 font-sans">
+            <Navbar />
 
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 text-red-700 dark:text-red-400 rounded">
-                            {error}
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium mb-2">
-                                Email
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700"
-                                placeholder="you@example.com"
-                            />
+            <main className="flex items-center justify-center py-20 px-4">
+                <div className="w-full max-w-md">
+                    <div className="bg-white dark:bg-[#111218] rounded-2xl border border-gray-200 dark:border-slate-800 p-8 shadow-2xl shadow-black/20">
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Chào mừng trở lại</h1>
+                            <p className="text-gray-600 dark:text-slate-400 text-sm">
+                                Đăng nhập để truy cập dashboard và quản lý workflow của bạn
+                            </p>
                         </div>
 
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium mb-2">
-                                Mật khẩu
-                            </label>
-                            <input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700"
-                                placeholder="••••••••"
-                            />
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm">
+                                {error}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    Email
+                                </label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-slate-500" />
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                        placeholder="you@example.com"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                                    Mật khẩu
+                                </label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-slate-500" />
+                                    <input
+                                        id="password"
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-3 bg-primary hover:bg-[#FF8559] text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>Đang đăng nhập...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Đăng nhập</span>
+                                        <ArrowRight className="h-4 w-4" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="mt-6">
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-slate-800"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-3 bg-white dark:bg-[#111218] text-gray-500 dark:text-slate-500">Hoặc</span>
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleAzureLogin}
+                                className="mt-4 w-full py-3 bg-gray-100 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-center gap-2 text-gray-700 dark:text-slate-200"
+                            >
+                                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                    <path fill="#00A4EF" d="M0 0h11.377v11.372H0z" />
+                                    <path fill="#FFB900" d="M12.623 0H24v11.372H12.623z" />
+                                    <path fill="#7FBA00" d="M0 12.628h11.377V24H0z" />
+                                    <path fill="#F25022" d="M12.623 12.628H24V24H12.623z" />
+                                </svg>
+                                Đăng nhập bằng Azure
+                            </button>
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-                        </button>
-                    </form>
+                        <div className="mt-6 text-center">
+                            <p className="text-gray-600 dark:text-slate-400 text-sm">
+                                Chưa có tài khoản?{' '}
+                                <Link href="/register" className="text-primary hover:text-[#FF8559] font-semibold transition-colors">
+                                    Đăng ký ngay
+                                </Link>
+                            </p>
+                        </div>
 
-                    <div className="mt-6 text-center">
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Chưa có tài khoản?{' '}
-                            <Link href="/register" className="text-blue-600 hover:underline font-semibold">
-                                Đăng ký
+                        <div className="mt-6 text-center">
+                            <Link href="/" className="text-sm text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-400 transition-colors">
+                                ← Quay lại trang chủ
                             </Link>
-                        </p>
-                    </div>
-
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Hoặc</span>
-                            </div>
                         </div>
-
-                        <button 
-                            onClick={handleAzureLogin}
-                            className="mt-4 w-full py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                <path fill="#00A4EF" d="M0 0h11.377v11.372H0z" />
-                                <path fill="#FFB900" d="M12.623 0H24v11.372H12.623z" />
-                                <path fill="#7FBA00" d="M0 12.628h11.377V24H0z" />
-                                <path fill="#F25022" d="M12.623 12.628H24V24H12.623z" />
-                            </svg>
-                            Đăng nhập bằng Azure
-                        </button>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+
+            <Footer />
+        </div>
     );
 }
