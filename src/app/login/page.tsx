@@ -17,6 +17,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [oauthLoading, setOauthLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,15 +37,40 @@ export default function LoginPage() {
         }
     };
 
+    const buildState = () => {
+        return searchParams.get('returnTo') || '/';
+    };
+
     const handleAzureLogin = async () => {
         try {
             setError('');
+            setOauthLoading(true);
             // apiClient.get() already unwraps response.data, so response is already the data
-            const response = await apiClient.get<{ authUrl: string }>('/auth/azure');
+            const response = await apiClient.get<{ authUrl: string }>('/auth/azure', {
+                params: { state: buildState() },
+            });
             const authUrl = response.authUrl;
             window.location.href = authUrl;
         } catch (err: any) {
             setError('Không thể kết nối với Azure. Vui lòng thử lại.');
+        } finally {
+            setOauthLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        try {
+            setError('');
+            setOauthLoading(true);
+            const response = await apiClient.get<{ authUrl: string }>('/auth/google', {
+                params: { state: buildState() },
+            });
+            const authUrl = response.authUrl;
+            window.location.href = authUrl;
+        } catch (err: any) {
+            setError('Không thể kết nối với Google. Vui lòng thử lại.');
+        } finally {
+            setOauthLoading(false);
         }
     };
 
@@ -136,7 +162,8 @@ export default function LoginPage() {
 
                             <button 
                                 onClick={handleAzureLogin}
-                                className="mt-4 w-full py-3 bg-gray-100 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-center gap-2 text-gray-700 dark:text-slate-200"
+                                disabled={oauthLoading}
+                                className="mt-4 w-full py-3 bg-gray-100 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-center gap-2 text-gray-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                                     <path fill="#00A4EF" d="M0 0h11.377v11.372H0z" />
@@ -145,6 +172,21 @@ export default function LoginPage() {
                                     <path fill="#F25022" d="M12.623 12.628H24V24H12.623z" />
                                 </svg>
                                 Đăng nhập bằng Azure
+                            </button>
+
+                            <button
+                                onClick={handleGoogleLogin}
+                                disabled={oauthLoading}
+                                className="mt-3 w-full py-3 bg-gray-100 dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-center gap-2 text-gray-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path fill="#EA4335" d="M24 9.5c3.54 0 6 1.54 7.38 2.83l5.4-5.4C33.9 3.58 29.47 2 24 2 14.82 2 6.71 7.44 3.14 15.09l6.91 5.36C11.79 14.01 17.42 9.5 24 9.5z" />
+                                    <path fill="#4285F4" d="M46.5 24.5c0-1.64-.15-3.21-.43-4.72H24v9.13h12.65c-.54 2.9-2.17 5.36-4.61 7.01l7.1 5.5C43.83 37.82 46.5 31.7 46.5 24.5z" />
+                                    <path fill="#FBBC05" d="M10.05 28.45a14.49 14.49 0 0 1-.76-4.45c0-1.54.27-3.03.75-4.44l-6.9-5.36A23.892 23.892 0 0 0 1.5 24c0 3.9.93 7.58 2.57 10.8l5.98-6.35z" />
+                                    <path fill="#34A853" d="M24 46c6.48 0 11.9-2.14 15.87-5.86l-7.1-5.5c-2 1.35-4.6 2.14-8.77 2.14-6.58 0-12.21-4.51-13.9-10.66l-6.91 5.36C6.7 40.56 14.82 46 24 46z" />
+                                    <path fill="none" d="M1.5 1.5h45v45h-45z" />
+                                </svg>
+                                Đăng nhập bằng Google
                             </button>
                         </div>
 

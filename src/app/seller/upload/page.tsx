@@ -16,17 +16,17 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  const [formData, setFormData] = useState<CreateProductInput>({
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
     long_description: '',
     type: 'workflow',
     tags: [],
     is_free: true,
-    price: undefined,
+    price: undefined as number | undefined,
     version: '',
-    requirements: [],
-    features: [],
+    requirements: [] as string[],
+    features: [] as string[],
     install_guide: '',
     workflow_file_url: '',
     thumbnail_url: '',
@@ -235,19 +235,23 @@ export default function UploadPage() {
     try {
       // Prepare data with proper types
       // Convert empty strings to undefined for optional URL fields
+      // Map form (snake_case) -> DTO camelCase expected bởi shared types
       const submitData: CreateProductInput = {
-        ...formData,
-        price: formData.price ? parseFloat(formData.price.toString()) : undefined,
+        title: formData.title,
+        description: formData.description,
+        longDescription: formData.long_description?.trim() || undefined,
+        type: formData.type as any,
         tags: formData.tags || [],
+        isFree: formData.is_free,
+        price: formData.price ? parseFloat(formData.price.toString()) : undefined,
+        version: formData.version?.trim() || undefined,
         requirements: formData.requirements || [],
         features: formData.features || [],
-        // Convert empty strings to undefined for URL fields (Zod requires undefined, not empty string)
-        workflow_file_url: formData.workflow_file_url?.trim() || undefined,
-        thumbnail_url: formData.thumbnail_url?.trim() || undefined,
-        preview_image_url: formData.preview_image_url?.trim() || undefined,
-        long_description: formData.long_description?.trim() || undefined,
-        version: formData.version?.trim() || undefined,
-        install_guide: formData.install_guide?.trim() || undefined,
+        installGuide: formData.install_guide?.trim() || undefined,
+        workflowFileUrl: formData.workflow_file_url?.trim() || undefined,
+        thumbnailUrl: formData.thumbnail_url?.trim() || undefined,
+        previewImageUrl: formData.preview_image_url?.trim() || undefined,
+        // currency / priceType / metadata không hiển thị nên bỏ trống
       };
 
       const product = await productService.createProduct(submitData);

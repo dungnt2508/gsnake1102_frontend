@@ -26,6 +26,9 @@ class ProductService {
     if (filters.type) params.append('type', filters.type);
     if (filters.search) params.append('search', filters.search);
     if (filters.tags && filters.tags.length > 0) params.append('tags', filters.tags.join(','));
+    if (filters.seller_id) params.append('seller_id', filters.seller_id);
+    if (filters.price_type) params.append('price_type', filters.price_type);
+    if (filters.is_free !== undefined) params.append('is_free', String(filters.is_free));
     if (filters.limit) params.append('limit', filters.limit.toString());
     if (filters.offset) params.append('offset', filters.offset.toString());
     if (filters.sort_by) params.append('sort_by', filters.sort_by);
@@ -89,6 +92,8 @@ class ProductService {
       preview_image_url: data.previewImageUrl,
       is_free: data.isFree,
       price: data.price,
+      currency: (data as any).currency,
+      price_type: (data as any).priceType,
       version: data.version,
       requirements: data.requirements,
       features: data.features,
@@ -117,6 +122,8 @@ class ProductService {
     if (data.previewImageUrl !== undefined) backendData.preview_image_url = data.previewImageUrl;
     if (data.isFree !== undefined) backendData.is_free = data.isFree;
     if (data.price !== undefined) backendData.price = data.price;
+    if ((data as any).currency !== undefined) backendData.currency = (data as any).currency;
+    if ((data as any).priceType !== undefined) backendData.price_type = (data as any).priceType;
     if (data.version !== undefined) backendData.version = data.version;
     if (data.requirements !== undefined) backendData.requirements = data.requirements;
     if (data.features !== undefined) backendData.features = data.features;
@@ -157,7 +164,10 @@ class ProductService {
    * Record download
    */
   async recordDownload(id: string): Promise<void> {
-    await apiClient.post(`/products/${id}/download`);
+    const response = await apiClient.post<{ downloadUrl: string }>(`/products/${id}/download`);
+    if (response.downloadUrl) {
+      window.open(response.downloadUrl, '_blank');
+    }
   }
 }
 

@@ -6,9 +6,27 @@ import { useAuth } from '@/lib/auth-context';
 import Navbar from '@/components/marketplace/Navbar';
 import Footer from '@/components/marketplace/Footer';
 import productService, { UpdateProductInput } from '@/services/product.service';
+import { ProductType } from '@gsnake/shared-types';
 import { Upload, X, Check, AlertCircle, ArrowLeft, Save, Eye } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+
+type FormState = {
+  title: string;
+  description: string;
+  long_description: string;
+  type: ProductType;
+  tags: string[];
+  is_free: boolean;
+  price?: number;
+  version: string;
+  requirements: string[];
+  features: string[];
+  install_guide: string;
+  workflow_file_url: string;
+  thumbnail_url: string;
+  preview_image_url: string;
+};
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -20,11 +38,11 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  const [formData, setFormData] = useState<UpdateProductInput>({
+  const [formData, setFormData] = useState<FormState>({
     title: '',
     description: '',
     long_description: '',
-    type: 'workflow',
+    type: ProductType.WORKFLOW,
     tags: [],
     is_free: true,
     price: undefined,
@@ -61,21 +79,22 @@ export default function EditProductPage() {
       // Use getMyProduct to access seller's own products (including drafts)
       const product = await productService.getMyProduct(productId);
       
+      // API trả về camelCase (workflowFileUrl, thumbnailUrl, previewImageUrl)
       setFormData({
         title: product.title,
         description: product.description,
-        long_description: product.long_description || '',
-        type: product.type,
+        long_description: (product as any).long_description ?? product.longDescription ?? '',
+        type: product.type as ProductType,
         tags: product.tags || [],
-        is_free: product.is_free,
+        is_free: (product as any).is_free ?? product.isFree,
         price: product.price,
-        version: product.version || '',
-        requirements: product.requirements || [],
-        features: product.features || [],
-        install_guide: product.install_guide || '',
-        workflow_file_url: product.workflow_file_url || '',
-        thumbnail_url: product.thumbnail_url || '',
-        preview_image_url: product.preview_image_url || '',
+        version: (product as any).version ?? product.version ?? '',
+        requirements: (product as any).requirements ?? product.requirements ?? [],
+        features: (product as any).features ?? product.features ?? [],
+        install_guide: (product as any).install_guide ?? product.installGuide ?? '',
+        workflow_file_url: (product as any).workflow_file_url ?? product.workflowFileUrl ?? '',
+        thumbnail_url: (product as any).thumbnail_url ?? product.thumbnailUrl ?? '',
+        preview_image_url: (product as any).preview_image_url ?? product.previewImageUrl ?? '',
       });
     } catch (error: any) {
       toast.error('Không thể tải thông tin sản phẩm');
@@ -220,11 +239,20 @@ export default function EditProductPage() {
     try {
       // Prepare data with proper types
       const submitData: UpdateProductInput = {
-        ...formData,
-        price: formData.price ? parseFloat(formData.price.toString()) : undefined,
+        title: formData.title,
+        description: formData.description,
+        longDescription: formData.long_description?.trim() || undefined,
+        type: formData.type,
         tags: formData.tags || [],
+        isFree: formData.is_free,
+        price: formData.price ? parseFloat(formData.price.toString()) : undefined,
+        version: formData.version?.trim() || undefined,
         requirements: formData.requirements || [],
         features: formData.features || [],
+        installGuide: formData.install_guide?.trim() || undefined,
+        workflowFileUrl: formData.workflow_file_url?.trim() || undefined,
+        thumbnailUrl: formData.thumbnail_url?.trim() || undefined,
+        previewImageUrl: formData.preview_image_url?.trim() || undefined,
       };
 
       await productService.updateProduct(productId, submitData);

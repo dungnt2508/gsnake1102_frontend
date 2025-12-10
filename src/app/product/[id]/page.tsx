@@ -40,14 +40,7 @@ export default function ProductDetailPage() {
     try {
       // Record download
       await productService.recordDownload(product.id);
-      
-      // If workflow file URL exists, open it
-      if (product.workflow_file_url) {
-        window.open(product.workflow_file_url, '_blank');
-        toast.success('Đang tải workflow...');
-      } else {
-        toast.error('Workflow file chưa được cung cấp');
-      }
+      toast.success('Đang tải workflow...');
     } catch (error: any) {
       toast.error('Không thể tải workflow');
     }
@@ -135,14 +128,14 @@ export default function ProductDetailPage() {
               </div>
             </header>
 
-            {product.long_description && (
+            {product.longDescription && (
               <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Mô tả chi tiết
                 </h2>
                 <div 
                   className="text-gray-700 dark:text-slate-300 leading-relaxed prose prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: product.long_description }}
+                  dangerouslySetInnerHTML={{ __html: product.longDescription }}
                 />
               </div>
             )}
@@ -151,10 +144,10 @@ export default function ProductDetailPage() {
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                 Ảnh / Preview workflow
               </h2>
-              {product.preview_image_url ? (
+              {product.previewImageUrl ? (
                 <div className="aspect-video rounded-xl overflow-hidden">
                   <img
-                    src={product.preview_image_url}
+                    src={product.previewImageUrl}
                     alt={product.title}
                     className="w-full h-full object-cover"
                   />
@@ -185,13 +178,13 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {product.install_guide && (
+            {product.installGuide && (
               <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Hướng dẫn cài đặt cơ bản
                 </h2>
                 <div className="text-gray-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                  {product.install_guide}
+                  {product.installGuide}
                 </div>
               </div>
             )}
@@ -203,7 +196,7 @@ export default function ProductDetailPage() {
                 <div className="mb-6">
                   <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">Trạng thái</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {product.is_free ? "Miễn phí" : `${product.price?.toLocaleString('vi-VN')} VNĐ`}
+                    {product.isFree ? "Miễn phí" : `${product.price?.toLocaleString('vi-VN')} ${product.currency || 'VND'}`}
                   </p>
                 </div>
 
@@ -212,7 +205,7 @@ export default function ProductDetailPage() {
                   className="w-full bg-primary hover:bg-[#FF8559] text-white font-semibold py-3 rounded-lg mb-3 transition-colors flex items-center justify-center gap-2"
                 >
                   <Download className="h-4 w-4" />
-                  {product.workflow_file_url ? 'Tải workflow' : 'Liên hệ để tải'}
+                  {product.workflowFileUrl ? 'Tải workflow' : 'Liên hệ để tải'}
                 </button>
                 
                 <button
@@ -257,7 +250,7 @@ export default function ProductDetailPage() {
                     </div>
                     <div className="flex justify-between">
                       <span>Cập nhật:</span>
-                      <span className="text-gray-900 dark:text-slate-200">{formatDate(product.updated_at)}</span>
+                      <span className="text-gray-900 dark:text-slate-200">{formatDate(product.updatedAt)}</span>
                     </div>
                   </div>
                 </div>

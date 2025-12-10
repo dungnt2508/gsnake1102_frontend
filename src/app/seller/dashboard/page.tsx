@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import Navbar from '@/components/marketplace/Navbar';
 import Footer from '@/components/marketplace/Footer';
 import productService, { Product } from '@/services/product.service';
-import { Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Download, Search, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Download, Search, Filter, ShieldX, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -76,7 +76,7 @@ export default function SellerDashboard() {
   const handlePublish = async (id: string) => {
     try {
       await productService.publishProduct(id);
-      toast.success('Đã publish sản phẩm');
+      toast.success('Đã publish sản phẩm, chờ admin phê duyệt');
       fetchProducts();
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || 'Publish thất bại';
@@ -95,7 +95,7 @@ export default function SellerDashboard() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, reviewStatus?: string) => {
     const styles = {
       draft: 'bg-slate-700 text-slate-300',
       published: 'bg-green-500/20 text-green-400 border border-green-500/30',
@@ -107,9 +107,23 @@ export default function SellerDashboard() {
       archived: 'Archived',
     };
     return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[status as keyof typeof styles]}`}>
-        {labels[status as keyof typeof labels]}
-      </span>
+      <div className="flex items-center gap-2">
+        <span className={`px-2 py-1 rounded text-xs font-medium ${styles[status as keyof typeof styles]}`}>
+          {labels[status as keyof typeof labels]}
+        </span>
+        {reviewStatus === 'pending' && (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30">
+            <ShieldCheck className="h-3 w-3" />
+            Chờ duyệt
+          </span>
+        )}
+        {reviewStatus === 'rejected' && (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium bg-red-500/15 text-red-400 border border-red-500/30">
+            <ShieldX className="h-3 w-3" />
+            Bị từ chối
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -127,6 +141,8 @@ export default function SellerDashboard() {
     total: products.length,
     published: products.filter(p => p.status === 'published').length,
     draft: products.filter(p => p.status === 'draft').length,
+    pending: products.filter(p => p.reviewStatus === 'pending').length,
+    rejected: products.filter(p => p.reviewStatus === 'rejected').length,
     downloads: products.reduce((sum, p) => sum + p.downloads, 0),
   };
 
@@ -168,6 +184,14 @@ export default function SellerDashboard() {
               <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-lg p-4">
                 <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">Draft</p>
                 <p className="text-2xl font-bold text-gray-600 dark:text-slate-400">{stats.draft}</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-lg p-4">
+                <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">Chờ duyệt</p>
+                <p className="text-2xl font-bold text-amber-500">{stats.pending}</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-lg p-4">
+                <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">Bị từ chối</p>
+                <p className="text-2xl font-bold text-red-500">{stats.rejected}</p>
               </div>
               <div className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-lg p-4">
                 <p className="text-sm text-gray-600 dark:text-slate-400 mb-1">Tổng lượt tải</p>
@@ -231,9 +255,9 @@ export default function SellerDashboard() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{product.title}</h3>
-                        {getStatusBadge(product.status)}
+                        {getStatusBadge(product.status, (product as any).reviewStatus || (product as any).review_status)}
                         {product.isFree ? (
                           <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs font-medium">
                             Miễn phí
@@ -245,7 +269,7 @@ export default function SellerDashboard() {
                         )}
                       </div>
                       <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 line-clamp-2">{product.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-500">
+                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-500 flex-wrap">
                         <span>Type: {product.type}</span>
                         <span>•</span>
                         <span>{product.downloads} lượt tải</span>
@@ -255,6 +279,20 @@ export default function SellerDashboard() {
                           <>
                             <span>•</span>
                             <span>v{product.version}</span>
+                          </>
+                        )}
+                        {((product as any).reviewStatus || (product as any).review_status) === 'pending' && (
+                          <>
+                            <span>•</span>
+                            <span className="text-amber-400">Đang chờ admin duyệt</span>
+                          </>
+                        )}
+                        {((product as any).reviewStatus || (product as any).review_status) === 'rejected' && (
+                          <>
+                            <span>•</span>
+                            <span className="text-red-400">
+                              Bị từ chối{(product as any).rejectionReason ? `: ${(product as any).rejectionReason}` : ''}
+                            </span>
                           </>
                         )}
                       </div>
