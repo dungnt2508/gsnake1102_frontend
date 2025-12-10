@@ -38,8 +38,8 @@ export default function ArticlesPage() {
     const fetchArticles = async (showNotification = false) => {
         try {
             setLoading(true);
-            const res = await apiClient.get(`/articles?limit=${limit}&offset=${(page - 1) * limit}`);
-            const fetchedArticles = res.data?.articles || [];
+            const res = await apiClient.get<{ articles: Article[] }>(`/articles?limit=${limit}&offset=${(page - 1) * limit}`);
+            const fetchedArticles = res.articles || [];
             
             // Check for status changes (for notifications)
             if (showNotification && previousArticlesRef.current.length > 0) {

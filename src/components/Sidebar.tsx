@@ -21,33 +21,40 @@ const menuGroups: MenuGroup[] = [
             { href: '/dashboard', label: 'Tổng quan', icon: '📊' },
         ],
     },
-    {
-        // Nội dung
-        title: 'Nội dung',
-        items: [
-            { href: '/dashboard/articles', label: 'Bài báo', icon: '📰' },
-            { href: '/dashboard/summaries', label: 'Tóm tắt', icon: '📝' },
-        ],
-    },
-    {
-        // Tự động hóa
-        title: 'Tự động hóa',
-        items: [
-            { href: '/dashboard/schedules', label: 'Lịch trình', icon: '⏰' },
-        ],
-    },
-    {
-        // Tương tác
-        title: 'Tương tác',
-        items: [
-            { href: '/dashboard/chat', label: 'Trò chuyện', icon: '💬' },
-        ],
-    },
+    // Các tính năng persona bot/LLM - Ẩn tạm thời, tập trung vào marketplace mini
+    // {
+    //     // Nội dung
+    //     title: 'Nội dung',
+    //     items: [
+    //         { href: '/dashboard/articles', label: 'Bài báo', icon: '📰' },
+    //         { href: '/dashboard/summaries', label: 'Tóm tắt', icon: '📝' },
+    //     ],
+    // },
+    // {
+    //     // Tự động hóa
+    //     title: 'Tự động hóa',
+    //     items: [
+    //         { href: '/dashboard/schedules', label: 'Lịch trình', icon: '⏰' },
+    //     ],
+    // },
+    // {
+    //     // Tương tác
+    //     title: 'Tương tác',
+    //     items: [
+    //         { href: '/dashboard/chat', label: 'Trò chuyện', icon: '💬' },
+    //     ],
+    // },
+    // {
+    //     // Hệ thống
+    //     title: 'Hệ thống',
+    //     items: [
+    //         { href: '/dashboard/tools', label: 'Công cụ', icon: '🛠️' },
+    //     ],
+    // },
     {
         // Hệ thống
         title: 'Hệ thống',
         items: [
-            { href: '/dashboard/tools', label: 'Công cụ', icon: '🛠️' },
             { href: '/dashboard/settings', label: 'Cài đặt', icon: '⚙️' },
         ],
     },
@@ -73,8 +80,8 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsO
             >
                 {/* Logo Area */}
                 <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-800">
-                    <Link href="/dashboard" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                        Personalized Bot
+                    <Link href="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                        Marketplace
                     </Link>
                     <button onClick={() => setIsOpen(false)} className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         ✕

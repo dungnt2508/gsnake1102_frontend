@@ -5,8 +5,8 @@ import Navbar from "@/components/marketplace/Navbar";
 import Footer from "@/components/marketplace/Footer";
 import TemplateCard from "@/components/marketplace/TemplateCard";
 import productService, { Product, ProductFilters } from '@/services/product.service';
-import { Search, Filter, X } from 'lucide-react';
-import Link from 'next/link';
+import { ProductType } from '@gsnake/shared-types';
+import { Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const PRODUCT_TYPES = [
@@ -32,8 +32,8 @@ export default function ProductsPage() {
       setLoading(true);
       const filters: ProductFilters = {
         search: searchQuery || undefined,
-        type: selectedType !== 'all' ? selectedType : undefined,
-        limit: 50,
+        type: selectedType !== 'all' ? selectedType as ProductType : undefined,
+        limit: 50 as number | undefined,
       };
       
       const result = await productService.getProducts(filters);
@@ -134,7 +134,7 @@ export default function ProductsPage() {
                   id={p.id}
                   title={p.title}
                   description={p.description}
-                  price={p.is_free ? 'Miễn phí' : `${p.price?.toLocaleString('vi-VN')} VNĐ`}
+                  price={p.isFree ? 'Miễn phí' : `${p.price?.toLocaleString('vi-VN')} VNĐ`}
                   author="Team gsnake"
                   downloads={p.downloads}
                   rating={p.rating}

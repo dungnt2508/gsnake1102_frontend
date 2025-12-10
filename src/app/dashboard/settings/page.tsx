@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import PersonaSettings from '@/components/PersonaSettings';
+// import PersonaSettings from '@/components/PersonaSettings'; // Ẩn tạm thời, tập trung vào marketplace mini
 
 export default function SettingsPage() {
     const searchParams = useSearchParams();
@@ -14,7 +14,7 @@ export default function SettingsPage() {
 
     useEffect(() => {
         const tab = searchParams.get('tab');
-        if (tab && ['profile', 'general', 'bot'].includes(tab)) {
+        if (tab && ['profile', 'general'].includes(tab)) {
             setActiveTab(tab);
         }
     }, [searchParams]);
@@ -40,7 +40,8 @@ export default function SettingsPage() {
                     >
                         👤 Tài khoản
                     </button>
-                    <button
+                    {/* Bot tab - Ẩn tạm thời, tập trung vào marketplace mini */}
+                    {/* <button
                         onClick={() => handleTabChange('bot')}
                         className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'bot'
                                 ? 'border-blue-500 text-blue-600 dark:text-blue-400'
@@ -48,7 +49,7 @@ export default function SettingsPage() {
                             }`}
                     >
                         🤖 Cấu hình Bot (Persona)
-                    </button>
+                    </button> */}
                     <button
                         onClick={() => handleTabChange('general')}
                         className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'general'
@@ -98,9 +99,10 @@ export default function SettingsPage() {
                     </div>
                 )}
 
-                {activeTab === 'bot' && (
+                {/* Bot tab content - Ẩn tạm thời, tập trung vào marketplace mini */}
+                {/* {activeTab === 'bot' && (
                     <PersonaSettings />
-                )}
+                )} */}
 
                 {activeTab === 'general' && (
                     <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 max-w-2xl">

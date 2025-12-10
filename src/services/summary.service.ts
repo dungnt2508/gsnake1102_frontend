@@ -52,9 +52,9 @@ export const summaryService = {
         return response;
     },
 
-    getSummary: async (id: string) => {
+    getSummary: async (id: string): Promise<{ article: Article; summary: Summary }> => {
         // apiClient.get() already unwraps response.data, so response is already the data
-        const response = await apiClient.get(`/summaries/${id}`);
+        const response = await apiClient.get<{ article: Article; summary: Summary }>(`/summaries/${id}`);
         return response;
     },
 };

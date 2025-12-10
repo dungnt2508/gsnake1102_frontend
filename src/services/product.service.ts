@@ -99,6 +99,15 @@ class ProductService {
       features: data.features,
       install_guide: data.installGuide,
       metadata: data.metadata,
+      // Phase 1 new fields
+      changelog: (data as any).changelog,
+      license: (data as any).license,
+      author_contact: (data as any).authorContact,
+      support_url: (data as any).supportUrl,
+      screenshots: (data as any).screenshots,
+      platform_requirements: (data as any).platformRequirements,
+      ownership_declaration: (data as any).ownershipDeclaration,
+      ownership_proof_url: (data as any).ownershipProofUrl,
     };
     // apiClient.post() already unwraps response.data, so response is already the data
     const response = await apiClient.post<{ product: Product }>('/products', backendData);
@@ -127,12 +136,22 @@ class ProductService {
     if (data.version !== undefined) backendData.version = data.version;
     if (data.requirements !== undefined) backendData.requirements = data.requirements;
     if (data.features !== undefined) backendData.features = data.features;
-    if (data.installGuide !== undefined) backendData.install_guide = data.installGuide;
-    if (data.metadata !== undefined) backendData.metadata = data.metadata;
-    
-    // apiClient.put() already unwraps response.data, so response is already the data
-    const response = await apiClient.put<{ product: Product }>(`/products/${id}`, backendData);
-    return response.product;
+      if (data.installGuide !== undefined) backendData.install_guide = data.installGuide;
+      if (data.metadata !== undefined) backendData.metadata = data.metadata;
+      
+      // Phase 1 new fields
+      if ((data as any).changelog !== undefined) backendData.changelog = (data as any).changelog;
+      if ((data as any).license !== undefined) backendData.license = (data as any).license;
+      if ((data as any).authorContact !== undefined) backendData.author_contact = (data as any).authorContact;
+      if ((data as any).supportUrl !== undefined) backendData.support_url = (data as any).supportUrl;
+      if ((data as any).screenshots !== undefined) backendData.screenshots = (data as any).screenshots;
+      if ((data as any).platformRequirements !== undefined) backendData.platform_requirements = (data as any).platformRequirements;
+      if ((data as any).ownershipDeclaration !== undefined) backendData.ownership_declaration = (data as any).ownershipDeclaration;
+      if ((data as any).ownershipProofUrl !== undefined) backendData.ownership_proof_url = (data as any).ownershipProofUrl;
+      
+      // apiClient.put() already unwraps response.data, so response is already the data
+      const response = await apiClient.put<{ product: Product }>(`/products/${id}`, backendData);
+      return response.product;
   }
 
   /**

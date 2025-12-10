@@ -1,61 +1,61 @@
 'use client';
 
-import { useMemo } from 'react';
+// import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDashboardStats } from '@/features/dashboard/hooks/useDashboardStats';
-import apiClient from '@/shared/api/client';
-import { useQuery } from '@tanstack/react-query';
+// import { apiClient } from '@/shared/api/client';
+// import { useQuery } from '@tanstack/react-query';
 
 export default function DashboardPage() {
     const { stats, isLoading } = useDashboardStats();
 
-    // Fetch articles and tools for recent activities
-    const articles = useQuery({
-        queryKey: ['articles', { limit: 100 }],
-        queryFn: async () => {
-            // apiClient.get() already unwraps response.data, so response is already the data
-            const response = await apiClient.get<{ articles: any[] }>('/articles?limit=100');
-            return response?.articles || [];
-        },
-    });
+    // Fetch articles and tools for recent activities - Ẩn tạm thời, tập trung vào marketplace mini
+    // const articles = useQuery({
+    //     queryKey: ['articles', { limit: 100 }],
+    //     queryFn: async () => {
+    //         // apiClient.get() already unwraps response.data, so response is already the data
+    //         const response = await apiClient.get<{ articles: any[] }>('/articles?limit=100');
+    //         return response?.articles || [];
+    //     },
+    // });
 
-    const tools = useQuery({
-        queryKey: ['tools', { limit: 100 }],
-        queryFn: async () => {
-            // apiClient.get() already unwraps response.data, so response is already the data
-            const response = await apiClient.get<{ tools: any[] }>('/tools?limit=100');
-            return response?.tools || [];
-        },
-    });
+    // const tools = useQuery({
+    //     queryKey: ['tools', { limit: 100 }],
+    //     queryFn: async () => {
+    //         // apiClient.get() already unwraps response.data, so response is already the data
+    //         const response = await apiClient.get<{ tools: any[] }>('/tools?limit=100');
+    //         return response?.tools || [];
+    //     },
+    // });
 
     // Calculate recent activities
-    const recentActivities = useMemo(() => {
-        if (!articles.data || !tools.data) return [];
+    // const recentActivities = useMemo(() => {
+    //     if (!articles.data || !tools.data) return [];
 
-        const recentArticles = articles.data
-            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .slice(0, 2)
-            .map((a: any) => ({
-                type: 'article',
-                text: `Đã tóm tắt bài báo "${a.title || a.url?.substring(0, 30)}"`,
-                status: a.status,
-                time: a.created_at,
-            }));
+    //     const recentArticles = articles.data
+    //         .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    //         .slice(0, 2)
+    //         .map((a: any) => ({
+    //             type: 'article',
+    //             text: `Đã tóm tắt bài báo "${a.title || a.url?.substring(0, 30)}"`,
+    //             status: a.status,
+    //             time: a.created_at,
+    //         }));
 
-        const recentTools = tools.data
-            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .slice(0, 1)
-            .map((t: any) => ({
-                type: 'tool',
-                text: `Hoàn thành yêu cầu tool "${t.request_payload?.description?.substring(0, 30) || 'Tool request'}"`,
-                status: t.status,
-                time: t.created_at,
-            }));
+    //     const recentTools = tools.data
+    //         .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    //         .slice(0, 1)
+    //         .map((t: any) => ({
+    //             type: 'tool',
+    //             text: `Hoàn thành yêu cầu tool "${t.request_payload?.description?.substring(0, 30) || 'Tool request'}"`,
+    //             status: t.status,
+    //             time: t.created_at,
+    //         }));
 
-        return [...recentArticles, ...recentTools]
-            .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-            .slice(0, 3);
-    }, [articles.data, tools.data]);
+    //     return [...recentArticles, ...recentTools]
+    //         .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+    //         .slice(0, 3);
+    // }, [articles.data, tools.data]);
 
     const formatTimeAgo = (dateString: string) => {
         const date = new Date(dateString);
@@ -83,27 +83,28 @@ export default function DashboardPage() {
         return `${diffMins} phút nữa`;
     };
 
-    const getPersonaDisplay = () => {
-        if (!stats?.persona.tone && !stats?.persona.language_style) {
-            return 'Chưa cấu hình';
-        }
-        const toneMap: Record<string, string> = {
-            professional: 'Chuyên nghiệp',
-            casual: 'Thoải mái',
-            witty: 'Hóm hỉnh',
-            friendly: 'Thân thiện',
-            academic: 'Học thuật',
-            sarcastic: 'Châm biếm',
-        };
-        const styleMap: Record<string, string> = {
-            concise: 'Ngắn gọn',
-            detailed: 'Chi tiết',
-            simple: 'Đơn giản',
-            technical: 'Kỹ thuật',
-            storytelling: 'Kể chuyện',
-        };
-        return `${toneMap[stats.persona.tone || ''] || stats.persona.tone} / ${styleMap[stats.persona.language_style || ''] || stats.persona.language_style}`;
-    };
+    // Persona display function - Ẩn tạm thời, tập trung vào marketplace mini
+    // const getPersonaDisplay = () => {
+    //     if (!stats?.persona.tone && !stats?.persona.language_style) {
+    //         return 'Chưa cấu hình';
+    //     }
+    //     const toneMap: Record<string, string> = {
+    //         professional: 'Chuyên nghiệp',
+    //         casual: 'Thoải mái',
+    //         witty: 'Hóm hỉnh',
+    //         friendly: 'Thân thiện',
+    //         academic: 'Học thuật',
+    //         sarcastic: 'Châm biếm',
+    //     };
+    //     const styleMap: Record<string, string> = {
+    //         concise: 'Ngắn gọn',
+    //         detailed: 'Chi tiết',
+    //         simple: 'Đơn giản',
+    //         technical: 'Kỹ thuật',
+    //         storytelling: 'Kể chuyện',
+    //     };
+    //     return `${toneMap[stats.persona.tone || ''] || stats.persona.tone} / ${styleMap[stats.persona.language_style || ''] || stats.persona.language_style}`;
+    // };
 
     if (isLoading) {
         return (
@@ -124,7 +125,7 @@ export default function DashboardPage() {
     return (
         <div className="space-y-6">
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Tổng số bài báo</h3>
@@ -158,7 +159,8 @@ export default function DashboardPage() {
                     )}
                 </div>
 
-                <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                {/* Persona card - Ẩn tạm thời, tập trung vào marketplace mini */}
+                {/* <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">Persona</h3>
                         <span className="text-2xl">🎭</span>
@@ -167,11 +169,11 @@ export default function DashboardPage() {
                     <Link href="/dashboard/settings?tab=bot" className="text-xs text-indigo-500 hover:underline mt-2 block">
                         Chỉnh sửa Persona →
                     </Link>
-                </div>
+                </div> */}
             </div>
 
-            {/* Recent Activity Feed */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Recent Activity Feed - Ẩn tạm thời, tập trung vào marketplace mini */}
+            {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
                     <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Hoạt động gần đây</h3>
                     <div className="space-y-4">
@@ -211,23 +213,31 @@ export default function DashboardPage() {
                         )}
                     </div>
                 </div>
+            </div> */}
 
-                {/* Quick Actions */}
-                <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+            {/* Quick Actions */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
                     <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Thao tác nhanh</h3>
                     <div className="space-y-3">
-                        <Link href="/dashboard/articles" className="block w-full text-left px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium">
+                        {/* Quick actions - Ẩn tạm thời, tập trung vào marketplace mini */}
+                        {/* <Link href="/dashboard/articles" className="block w-full text-left px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium">
                             + Tóm tắt bài báo mới
                         </Link>
                         <Link href="/dashboard/tools" className="block w-full text-left px-4 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium">
                             + Yêu cầu công cụ mới
+                        </Link> */}
+                        <Link href="/products" className="block w-full text-left px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium">
+                            🛍️ Xem sản phẩm
                         </Link>
-                        <Link href="/dashboard/chat" className="block w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
+                        <Link href="/seller/dashboard" className="block w-full text-left px-4 py-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors font-medium">
+                            📦 Quản lý sản phẩm
+                        </Link>
+                        {/* Chat link - Ẩn tạm thời, tập trung vào marketplace mini */}
+                        {/* <Link href="/dashboard/chat" className="block w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium">
                             💬 Bắt đầu trò chuyện
-                        </Link>
+                        </Link> */}
                     </div>
                 </div>
-            </div>
         </div>
     );
 }

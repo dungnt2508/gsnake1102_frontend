@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '@/shared/api/client';
+import { apiClient } from '@/shared/api/client';
 
 interface DashboardStats {
     articles: {
@@ -14,7 +14,7 @@ interface DashboardStats {
         total: number;
         nextFetch?: string;
     };
-    persona: {
+    persona?: {
         tone?: string;
         language_style?: string;
     };
@@ -56,23 +56,24 @@ export function useDashboardStats() {
         staleTime: 1000 * 60 * 2,
     });
 
-    const persona = useQuery({
-        queryKey: ['persona'],
-        queryFn: async () => {
-            try {
-                // apiClient.get() already unwraps response.data, so response is already the data
-                const response = await apiClient.get<{ persona: any }>('/personas');
-                return response?.persona || {};
-            } catch {
-                return {};
-            }
-        },
-        staleTime: 1000 * 60 * 5,
-        retry: false, // Don't retry if persona doesn't exist
-    });
+    // Persona query - Ẩn tạm thời, tập trung vào marketplace mini
+    // const persona = useQuery({
+    //     queryKey: ['persona'],
+    //     queryFn: async () => {
+    //         try {
+    //             // apiClient.get() already unwraps response.data, so response is already the data
+    //             const response = await apiClient.get<{ persona: any }>('/personas');
+    //             return response?.persona || {};
+    //         } catch {
+    //             return {};
+    //         }
+    //     },
+    //     staleTime: 1000 * 60 * 5,
+    //     retry: false, // Don't retry if persona doesn't exist
+    // });
 
-    // Calculate stats
-    const stats: DashboardStats | undefined = articles.data && tools.data && schedules.data && persona.data
+    // Calculate stats (không cần persona data)
+    const stats: DashboardStats | undefined = articles.data && tools.data && schedules.data
         ? {
             articles: {
                 total: articles.data.length,
@@ -96,13 +97,13 @@ export function useDashboardStats() {
                         new Date(a.next_fetch).getTime() - new Date(b.next_fetch).getTime()
                     )[0]?.next_fetch,
             },
-            persona: persona.data,
+            persona: {}, // Empty persona object for compatibility
         }
         : undefined;
 
     return {
         stats,
-        isLoading: articles.isLoading || tools.isLoading || schedules.isLoading || persona.isLoading,
+        isLoading: articles.isLoading || tools.isLoading || schedules.isLoading,
         isError: articles.isError || tools.isError || schedules.isError,
         error: articles.error || tools.error || schedules.error,
     };

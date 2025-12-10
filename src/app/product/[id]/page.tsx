@@ -196,7 +196,7 @@ export default function ProductDetailPage() {
                 <div className="mb-6">
                   <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">Trạng thái</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {product.isFree ? "Miễn phí" : `${product.price?.toLocaleString('vi-VN')} ${product.currency || 'VND'}`}
+                    {product.isFree ? "Miễn phí" : `${product.price?.toLocaleString('vi-VN')} VNĐ`}
                   </p>
                 </div>
 

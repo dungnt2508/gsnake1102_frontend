@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoginDto, RegisterDto, UserDto } from '@gsnake/shared-types';
-import apiClient from '@/shared/api/client';
+import { apiClient } from '@/shared/api/client';
 
 /**
  * Get current user

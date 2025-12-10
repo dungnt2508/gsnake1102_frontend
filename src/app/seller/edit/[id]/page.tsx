@@ -10,6 +10,7 @@ import { ProductType } from '@gsnake/shared-types';
 import { Upload, X, Check, AlertCircle, ArrowLeft, Save, Eye } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import WorkflowUploadSection from '@/components/product/WorkflowUploadSection';
 
 type FormState = {
   title: string;
@@ -455,28 +456,47 @@ export default function EditProductPage() {
               </div>
             </section>
 
+            {/* Workflow-specific upload section */}
+            {formData.type === 'workflow' && (
+              <section className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Workflow Files & Details
+                </h2>
+                <WorkflowUploadSection
+                  productId={productId}
+                  onFilesUploaded={(files) => {
+                    if (files.workflow) {
+                      setFormData(prev => ({ ...prev, workflow_file_url: files.workflow! }));
+                    }
+                  }}
+                />
+              </section>
+            )}
+
             {/* Files & Media */}
             <section className="bg-gray-50 dark:bg-[#111218] border border-gray-200 dark:border-slate-800 rounded-2xl p-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Files & Media</h2>
               
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
-                    Workflow File URL {formData.type === 'workflow' && <span className="text-red-500">*</span>}
-                  </label>
-                  <input
-                    type="url"
-                    name="workflow_file_url"
-                    value={formData.workflow_file_url}
-                    onChange={handleChange}
-                    className={`w-full rounded-lg border ${
-                      isFieldMissing('workflow_file_url')
-                        ? 'border-red-500 dark:border-red-500'
-                        : 'border-gray-200 dark:border-slate-700'
-                    } bg-white dark:bg-slate-900/40 px-4 py-3 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
-                    placeholder="https://example.com/workflow.json"
-                  />
-                </div>
+                {formData.type !== 'workflow' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
+                      Workflow File URL <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      name="workflow_file_url"
+                      value={formData.workflow_file_url}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border ${
+                        isFieldMissing('workflow_file_url')
+                          ? 'border-red-500 dark:border-red-500'
+                          : 'border-gray-200 dark:border-slate-700'
+                      } bg-white dark:bg-slate-900/40 px-4 py-3 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                      placeholder="https://example.com/workflow.json"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">

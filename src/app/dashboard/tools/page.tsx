@@ -37,8 +37,8 @@ export default function ToolsPage() {
     const fetchTools = async (showNotification = false) => {
         try {
             setLoading(true);
-            const res = await apiClient.get(`/tools?limit=${limit}&offset=${(page - 1) * limit}`);
-            const fetchedTools = res.data?.tools || [];
+            const res = await apiClient.get<{ tools: ToolRequest[] }>(`/tools?limit=${limit}&offset=${(page - 1) * limit}`);
+            const fetchedTools = res.tools || [];
             
             // Check for status changes (for notifications)
             if (showNotification && previousToolsRef.current.length > 0) {

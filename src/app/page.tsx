@@ -79,7 +79,7 @@ export default function Home() {
                                     id={product.id}
                                     title={product.title}
                                     description={product.description}
-                                    price={product.is_free ? 'Miễn phí' : `${product.price?.toLocaleString('vi-VN')} VNĐ`}
+                                    price={product.isFree ? 'Miễn phí' : `${product.price?.toLocaleString('vi-VN')} VNĐ`}
                                     author="Team gsnake"
                                     downloads={product.downloads}
                                     rating={product.rating}

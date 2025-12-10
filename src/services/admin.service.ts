@@ -91,9 +91,9 @@ class AdminService {
   /**
    * Get products pending review
    */
-  async getProductsPendingReview(limit: number = 50, offset: number = 0) {
+  async getProductsPendingReview(limit: number = 50, offset: number = 0): Promise<{ products: any[] }> {
     // apiClient.get() already unwraps response.data, so response is already the data
-    const response = await apiClient.get(`/admin/products/pending?limit=${limit}&offset=${offset}`);
+    const response = await apiClient.get<{ products: any[] }>(`/admin/products/pending?limit=${limit}&offset=${offset}`);
     return response;
   }
 
