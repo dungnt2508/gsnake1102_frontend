@@ -27,9 +27,12 @@ export default function GoogleCallbackPage() {
       }
 
       try {
-        const response = await apiClient.get<{ user: any; token: string }>(`/auth/google/callback?code=${encodeURIComponent(code)}`);
+        const response = await apiClient.get<{ user: any; token: string; refreshToken?: string }>(`/auth/google/callback?code=${encodeURIComponent(code)}`);
         if (response.token) {
           localStorage.setItem('token', response.token);
+        }
+        if ((response as any).refreshToken) {
+          localStorage.setItem('refresh_token', (response as any).refreshToken);
         }
         // Reload to let AuthProvider fetch /auth/me with new token
         window.location.href = state || '/';

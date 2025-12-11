@@ -12,35 +12,42 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const getStoredTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'dark';
+  return (window.localStorage.getItem('theme') as Theme) || 'dark';
+};
+
+const resolveTheme = (theme: Theme): 'light' | 'dark' => {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return theme;
+};
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
+  const [theme, setThemeState] = useState<Theme>('dark'); // match SSR output to avoid hydration mismatch
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
   const [mounted, setMounted] = useState(false);
 
+  // Hydrate theme from localStorage / system once on client
   useEffect(() => {
-    setMounted(true);
-    // Load theme from localStorage or default to 'dark'
-    const savedTheme = (localStorage.getItem('theme') as Theme) || 'dark';
+    const savedTheme = getStoredTheme();
+    const resolved = resolveTheme(savedTheme);
     setThemeState(savedTheme);
+    setResolvedTheme(resolved);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
 
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-
-    let resolved: 'light' | 'dark';
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      resolved = systemTheme;
-    } else {
-      resolved = theme;
-    }
+    const resolved = resolveTheme(theme);
 
     setResolvedTheme(resolved);
+    root.classList.remove('light', 'dark');
     root.classList.add(resolved);
-    localStorage.setItem('theme', theme);
+    window.localStorage.setItem('theme', theme);
   }, [theme, mounted]);
 
   // Listen for system theme changes

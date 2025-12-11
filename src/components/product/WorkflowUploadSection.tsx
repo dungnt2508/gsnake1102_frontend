@@ -35,9 +35,22 @@ export default function WorkflowUploadSection({
       const readme = artifacts.find(a => a.artifactType === 'readme');
       const envExample = artifacts.find(a => a.artifactType === 'env_example');
 
-      if (workflow) setWorkflowFile(workflow.fileUrl);
-      if (readme) setReadmeFile(readme.fileUrl);
-      if (envExample) setEnvExampleFile(envExample.fileUrl);
+      const wfUrl = workflow ? (workflow as any).fileUrl || (workflow as any).file_url : null;
+      const readmeUrl = readme ? (readme as any).fileUrl || (readme as any).file_url : null;
+      const envUrl = envExample ? (envExample as any).fileUrl || (envExample as any).file_url : null;
+
+      if (wfUrl) setWorkflowFile(wfUrl);
+      if (readmeUrl) setReadmeFile(readmeUrl);
+      if (envUrl) setEnvExampleFile(envUrl);
+
+      // Đẩy lên parent để cập nhật form state nếu sản phẩm đã có artifact sẵn
+      if (onFilesUploaded) {
+        onFilesUploaded({
+          workflow: wfUrl || undefined,
+          readme: readmeUrl || undefined,
+          envExample: envUrl || undefined,
+        });
+      }
     } catch (err) {
       console.error('Failed to load artifacts:', err);
     }
@@ -49,30 +62,31 @@ export default function WorkflowUploadSection({
 
     try {
       const artifact = await artifactService.uploadArtifact(productId, file, artifactType);
+      const fileUrl = (artifact as any).fileUrl || (artifact as any).file_url;
 
       // Update state based on artifact type
       if (artifactType === 'workflow_json') {
-        setWorkflowFile(artifact.fileUrl);
+        setWorkflowFile(fileUrl);
         
         // Auto-save workflow details if n8n version is set
         if (n8nVersion) {
           await workflowService.createOrUpdateWorkflowDetails(productId, {
-            workflowJsonUrl: artifact.fileUrl,
+            workflowJsonUrl: fileUrl,
             n8nVersion: n8nVersion,
           });
         }
       } else if (artifactType === 'readme') {
-        setReadmeFile(artifact.fileUrl);
+        setReadmeFile(fileUrl);
       } else if (artifactType === 'env_example') {
-        setEnvExampleFile(artifact.fileUrl);
+        setEnvExampleFile(fileUrl);
       }
 
       // Notify parent
       if (onFilesUploaded) {
         onFilesUploaded({
-          workflow: artifactType === 'workflow_json' ? artifact.fileUrl : workflowFile || undefined,
-          readme: artifactType === 'readme' ? artifact.fileUrl : readmeFile || undefined,
-          envExample: artifactType === 'env_example' ? artifact.fileUrl : envExampleFile || undefined,
+          workflow: artifactType === 'workflow_json' ? fileUrl : workflowFile || undefined,
+          readme: artifactType === 'readme' ? fileUrl : readmeFile || undefined,
+          envExample: artifactType === 'env_example' ? fileUrl : envExampleFile || undefined,
         });
       }
     } catch (err: any) {

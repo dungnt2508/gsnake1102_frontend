@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import { ThemeInitScript } from "@/lib/theme-init-script";
 import { ThemeProvider } from "@/lib/theme-context";
 import { QueryProvider } from "@/shared/providers/query-provider";
 import { Toaster } from "react-hot-toast";
@@ -22,6 +23,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
+            <head>
+                <ThemeInitScript />
+            </head>
             <body className={inter.className} suppressHydrationWarning>
                 <SuppressExtensionErrors />
                 <ErrorBoundary>

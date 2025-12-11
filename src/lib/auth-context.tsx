@@ -59,11 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (email: string, password: string) => {
         try {
-            const response = await apiClient.post<{ token: string; user: any }>('/auth/login', { email, password });
+            const response = await apiClient.post<{ token: string; refreshToken?: string; user: any }>('/auth/login', { email, password });
             // apiClient.post() already unwraps response.data, so response is already the data
-            const { token: newToken, user: newUser } = response;
+            const { token: newToken, refreshToken, user: newUser } = response;
 
             localStorage.setItem('token', newToken);
+            if (refreshToken) {
+                localStorage.setItem('refresh_token', refreshToken);
+            }
             setToken(newToken);
             setUser({
                 userId: newUser.id,
@@ -78,11 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const register = async (email: string, password: string) => {
         try {
-            const response = await apiClient.post<{ token: string; user: any }>('/auth/register', { email, password });
+            const response = await apiClient.post<{ token: string; refreshToken?: string; user: any }>('/auth/register', { email, password });
             // apiClient.post() already unwraps response.data, so response is already the data
-            const { token: newToken, user: newUser } = response;
+            const { token: newToken, refreshToken, user: newUser } = response;
 
             localStorage.setItem('token', newToken);
+            if (refreshToken) {
+                localStorage.setItem('refresh_token', refreshToken);
+            }
             setToken(newToken);
             setUser({
                 userId: newUser.id,
@@ -102,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
         setToken(null);
         setUser(null);
         // Redirect to login page
