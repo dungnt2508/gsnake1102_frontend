@@ -24,13 +24,16 @@ class ArtifactService {
   async uploadArtifact(
     productId: string,
     file: File,
-    artifactType: ArtifactType
+    artifactType: ArtifactType,
+    options?: { version?: string; isPrimary?: boolean }
   ): Promise<ProductArtifact> {
     const formData = new FormData();
     formData.append('file', file);
+    const versionParam = options?.version ? `&version=${encodeURIComponent(options.version)}` : '';
+    const primaryParam = options?.isPrimary !== undefined ? `&is_primary=${options.isPrimary}` : '';
 
     const response = await apiClient.post<{ artifact: ProductArtifact }>(
-      `/products/${productId}/artifacts/upload?artifact_type=${artifactType}`,
+      `/products/${productId}/artifacts/upload?artifact_type=${artifactType}${versionParam}${primaryParam}`,
       formData,
       {
         headers: {

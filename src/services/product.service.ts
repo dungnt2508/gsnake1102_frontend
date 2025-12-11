@@ -90,6 +90,8 @@ class ProductService {
       workflow_file_url: data.workflowFileUrl,
       thumbnail_url: data.thumbnailUrl,
       preview_image_url: data.previewImageUrl,
+      video_url: (data as any).videoUrl,
+      contact_channel: (data as any).contactChannel,
       is_free: data.isFree,
       price: data.price,
       currency: (data as any).currency,
@@ -106,6 +108,7 @@ class ProductService {
       support_url: (data as any).supportUrl,
       screenshots: (data as any).screenshots,
       platform_requirements: (data as any).platformRequirements,
+      required_credentials: (data as any).requiredCredentials,
       ownership_declaration: (data as any).ownershipDeclaration,
       ownership_proof_url: (data as any).ownershipProofUrl,
     };
@@ -129,6 +132,8 @@ class ProductService {
     if (data.workflowFileUrl !== undefined) backendData.workflow_file_url = data.workflowFileUrl;
     if (data.thumbnailUrl !== undefined) backendData.thumbnail_url = data.thumbnailUrl;
     if (data.previewImageUrl !== undefined) backendData.preview_image_url = data.previewImageUrl;
+    if ((data as any).videoUrl !== undefined) backendData.video_url = (data as any).videoUrl;
+    if ((data as any).contactChannel !== undefined) backendData.contact_channel = (data as any).contactChannel;
     if (data.isFree !== undefined) backendData.is_free = data.isFree;
     if (data.price !== undefined) backendData.price = data.price;
     if ((data as any).currency !== undefined) backendData.currency = (data as any).currency;
@@ -146,6 +151,7 @@ class ProductService {
       if ((data as any).supportUrl !== undefined) backendData.support_url = (data as any).supportUrl;
       if ((data as any).screenshots !== undefined) backendData.screenshots = (data as any).screenshots;
       if ((data as any).platformRequirements !== undefined) backendData.platform_requirements = (data as any).platformRequirements;
+      if ((data as any).requiredCredentials !== undefined) backendData.required_credentials = (data as any).requiredCredentials;
       if ((data as any).ownershipDeclaration !== undefined) backendData.ownership_declaration = (data as any).ownershipDeclaration;
       if ((data as any).ownershipProofUrl !== undefined) backendData.ownership_proof_url = (data as any).ownershipProofUrl;
       

@@ -36,10 +36,14 @@ export default function UploadPage() {
     workflow_file_url: '',
     thumbnail_url: '',
     preview_image_url: '',
+    video_url: '',
+    contact_channel: '',
     license: '',
     ownership_declaration: false,
     ownership_proof_url: '',
     screenshots: [] as string[],
+    platform_requirements: {} as Record<string, any>,
+    required_credentials: [] as string[],
   });
 
   const [tagInput, setTagInput] = useState('');
@@ -61,6 +65,7 @@ export default function UploadPage() {
     connector_notes: '',
     example_workflows: [] as string[],
   });
+  const [credentialInput, setCredentialInput] = useState('');
   const [toolDepInput, setToolDepInput] = useState('');
   const [integrationPlatformInput, setIntegrationPlatformInput] = useState('');
   const [integrationExampleInput, setIntegrationExampleInput] = useState('');
@@ -177,6 +182,23 @@ export default function UploadPage() {
     }));
   };
 
+  const addCredential = () => {
+    if (credentialInput.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        required_credentials: [...(prev.required_credentials || []), credentialInput.trim()],
+      }));
+      setCredentialInput('');
+    }
+  };
+
+  const removeCredential = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      required_credentials: prev.required_credentials!.filter((_, i) => i !== index),
+    }));
+  };
+
   const updateToolMeta = (key: string, value: any) => {
     setToolMeta(prev => ({ ...prev, [key]: value }));
   };
@@ -245,6 +267,14 @@ export default function UploadPage() {
     
     if (!formData.thumbnail_url?.trim()) {
       missing.push('Thumbnail URL');
+    }
+
+    if (!(formData as any).video_url?.trim()) {
+      missing.push('Video demo');
+    }
+
+    if (!(formData as any).contact_channel?.trim()) {
+      missing.push('Kênh liên hệ');
     }
 
     if (!formData.license?.trim()) {
@@ -340,10 +370,14 @@ export default function UploadPage() {
         workflowFileUrl: formData.workflow_file_url?.trim() || undefined,
         thumbnailUrl: formData.thumbnail_url?.trim() || undefined,
         previewImageUrl: formData.preview_image_url?.trim() || undefined,
+        video_url: (formData as any).video_url?.trim() || undefined as any,
+        contact_channel: (formData as any).contact_channel?.trim() || undefined,
         license: formData.license?.trim() || undefined,
         ownershipDeclaration: formData.ownership_declaration,
         ownershipProofUrl: formData.ownership_proof_url?.trim() || undefined,
         screenshots: formData.screenshots || [],
+        platformRequirements: formData.platform_requirements,
+        required_credentials: formData.required_credentials,
         metadata: {
           ...(formData.type === 'tool' ? { tool: toolMeta } : {}),
           ...(formData.type === 'integration' ? { integration: integrationMeta } : {}),
@@ -381,6 +415,8 @@ export default function UploadPage() {
               workflow_file_url: 'Workflow File URL',
               thumbnail_url: 'Thumbnail URL',
               preview_image_url: 'Preview Image URL',
+              video_url: 'Video demo',
+              contact_channel: 'Kênh liên hệ',
               price: 'Giá',
               type: 'Loại sản phẩm',
               license: 'License',
@@ -592,6 +628,92 @@ export default function UploadPage() {
                         className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900/40 px-4 py-3 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                         placeholder="Mô tả chi tiết về sản phẩm, cách hoạt động, use cases..."
                       />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
+                          Video demo (YouTube) <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          name="video_url"
+                          value={(formData as any).video_url}
+                          onChange={handleChange}
+                          className={`w-full rounded-lg border ${
+                            errors.video_url ? 'border-red-500' : 'border-gray-200 dark:border-slate-700'
+                          } bg-white dark:bg-slate-900/40 px-4 py-3 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                          placeholder="https://youtube.com/..."
+                        />
+                        {errors.video_url && (
+                          <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {errors.video_url}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
+                          Kênh liên hệ (email/Calendly/WhatsApp) <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          name="contact_channel"
+                          value={(formData as any).contact_channel}
+                          onChange={handleChange}
+                          className={`w-full rounded-lg border ${
+                            errors.contact_channel ? 'border-red-500' : 'border-gray-200 dark:border-slate-700'
+                          } bg-white dark:bg-slate-900/40 px-4 py-3 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                          placeholder="mailto:team@example.com hoặc https://calendly.com/..."
+                        />
+                        {errors.contact_channel && (
+                          <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {errors.contact_channel}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
+                        Credentials cần cho flow (n8n)
+                      </label>
+                      <div className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          value={credentialInput}
+                          onChange={(e) => setCredentialInput(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCredential())}
+                          className="flex-1 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900/40 px-4 py-2 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                          placeholder="Ví dụ: openai, notion, slack_api_key"
+                        />
+                        <button
+                          type="button"
+                          onClick={addCredential}
+                          className="px-4 py-2 bg-primary hover:bg-[#FF8559] text-white rounded-lg transition-colors"
+                        >
+                          Thêm
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.required_credentials!.map((item, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-2 px-3 py-1 bg-gray-200 dark:bg-slate-800 rounded-lg text-sm text-gray-700 dark:text-slate-200"
+                          >
+                            {item}
+                            <button
+                              type="button"
+                              onClick={() => removeCredential(index)}
+                              className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </section>

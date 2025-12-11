@@ -127,15 +127,19 @@ export default function Navbar() {
                                         <div className="h-6 w-px bg-gray-200 dark:bg-slate-800 mx-2"></div>
                                     </>
                                 )}
+                                {/* TODO: Re-enable when marketplace feature is fully implemented
                                 {(!user.role || user.role === 'user') && user.seller_status !== 'approved' && (
-                                    <Link
-                                        href="/seller/apply"
-                                        className="text-sm font-medium text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                                    >
-                                        Trở thành Seller
-                                    </Link>
+                                    <>
+                                        <Link
+                                            href="/seller/apply"
+                                            className="text-sm font-medium text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                        >
+                                            Trở thành Seller
+                                        </Link>
+                                        <div className="h-6 w-px bg-gray-200 dark:bg-slate-800 mx-2"></div>
+                                    </>
                                 )}
-                                <div className="h-6 w-px bg-gray-200 dark:bg-slate-800 mx-2"></div>
+                                */}
                                 <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
                                     <User className="h-4 w-4" />
                                     <span>{user.email}</span>
