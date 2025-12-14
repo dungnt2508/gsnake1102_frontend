@@ -10,21 +10,21 @@ export default function Hero() {
             <div className="relative container mx-auto px-4 text-center z-10">
                 <div className="inline-flex items-center rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-1.5 text-sm font-medium text-orange-400 mb-8 backdrop-blur-sm animate-fade-in-up">
                     <span className="flex h-2 w-2 rounded-full bg-orange-500 mr-2 animate-pulse"></span>
-                    🔥 Mới: Hơn 500+ Workflow Templates từ Chuyên Gia
+                        Cung cấp giải pháp tự động hóa cho doanh nghiệp 🔥
                     <ArrowRight className="ml-2 h-4 w-4" />
                 </div>
 
                 <h1 className="mx-auto max-w-5xl text-5xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-7xl mb-8 leading-tight">
-                    Tự Động Hóa Công Việc Với <br />
+                    Tự động hóa công việc với <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600">
-                        n8n Workflows Chuyên Nghiệp
+                        n8n workflows chuyên nghiệp
                     </span>
                 </h1>
 
                 <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-slate-400 mb-12 leading-relaxed">
-                    Marketplace hàng đầu cho n8n workflows.   <br />
-                    Khám phá hàng trăm giải pháp tự động hóa được tối ưu sẵn, 
-                    giúp doanh nghiệp tiết kiệm hàng giờ làm việc mỗi ngày và tăng năng suất lên 10x.                
+                    Cung cấp giải pháp tự động hóa hàng đầu cho n8n workflows.   <br />
+                    Khám phá hàng trăm giải pháp tự động hóa được tối ưu sẵn, 
+                    giúp doanh nghiệp tiết kiệm hàng giờ làm việc mỗi ngày và tăng năng suất lên 10x.                
                 </p>
 
                 <div className="mx-auto max-w-2xl relative mb-12 group">
@@ -35,10 +35,10 @@ export default function Hero() {
                         <input
                             type="text"
                             className="flex-1 bg-transparent border-0 outline-none text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 sm:text-lg py-3 pr-2"
-                            placeholder="Tìm kiếm: 'Tự động hóa Instagram', 'Marketing Email', 'CRM Sync', 'SEO Content'..."
+                            placeholder="Tìm kiếm: 'Tự động hóa Instagram', 'Marketing Email', 'CRM Sync', 'SEO Content'..."
                         />
                         <button className="bg-primary hover:bg-[#FF8559] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap">
-                            Tìm kiếm
+                            Tìm kiếm
                         </button>
                     </div>
                 </div>
